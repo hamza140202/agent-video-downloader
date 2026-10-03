@@ -1,0 +1,39 @@
+# Build artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+
+# Runtime artifacts
+download/
+logs/
+*.sqlite
+*.sqlite-journal
+*.part
+*.tmp
+tests/results/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+
+# Env
+.env
+.venv/
+venv/
+env/
+
+# Cookies (never commit)
+cookies.txt
+*.cookies
