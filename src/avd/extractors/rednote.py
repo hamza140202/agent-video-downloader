@@ -81,14 +81,32 @@ def _find_xhs_downloader() -> str | None:
 
 
 async def _try_xhs_downloader_subprocess(url: str, dest: Path, opts: dict) -> ExtractOutcome:
-    """Slot 1: Invoke JoeanAmier/XHS-Downloader via subprocess (if cloned)."""
+    """Slot 1: Invoke JoeanAmier/XHS-Downloader via subprocess.
+
+    AUTO-BOOTSTRAPS: If XHS-Downloader isn't found, clones it on first call
+    so the user never needs to manually install anything.
+    """
     note_id = _extract_note_id(url)
     if not note_id:
         return ExtractOutcome(ok=False, extractor_name="rednote:xhs", error="no_note_id")
 
     repo_path = _find_xhs_downloader()
     if not repo_path:
-        return ExtractOutcome(ok=False, extractor_name="rednote:xhs", error="xhs_downloader_not_installed")
+        # AUTO-BOOTSTRAP: clone XHS-Downloader on first call
+        log.info("rednote_auto_bootstrap_start", url=url)
+        from avd.bootstrap import ensure_xhs_downloader
+
+        repo_path = ensure_xhs_downloader()
+        if not repo_path:
+            return ExtractOutcome(
+                ok=False,
+                extractor_name="rednote:xhs",
+                error="xhs_downloader_auto_bootstrap_failed",
+            )
+        log.info("rednote_auto_bootstrap_done", path=repo_path)
+        # Update the module-level search list so future calls find it without re-checking
+        if repo_path not in _XHS_DOWNLOADER_PATHS:
+            _XHS_DOWNLOADER_PATHS.insert(0, repo_path)
 
     out_dir = dest if dest.is_dir() else dest.parent
     ensure_dir(out_dir)
@@ -126,6 +144,19 @@ asyncio.run(main())
             log.info("xhs_subprocess_stderr", output=stderr_text[-1000:])
         if proc.returncode != 0:
             return ExtractOutcome(ok=False, extractor_name="rednote:xhs", error=f"subprocess_failed: {stderr_text[:500]}")
+        # Parse XHS-Downloader's output to verify it actually downloaded something
+        # Output format: "共处理 N 个作品，成功 X 个，失败 Y 个，跳过 Z 个"
+        import re as _re
+        success_match = _re.search(r"成功\s*(\d+)\s*个", stdout_text)
+        failed_match = _re.search(r"失败\s*(\d+)\s*个", stdout_text)
+        success_count = int(success_match.group(1)) if success_match else 0
+        failed_count = int(failed_match.group(1)) if failed_match else 0
+        if success_count == 0:
+            # XHS-Downloader reported 0 successes — note is bot-walled / private / not video
+            reason = "data_fetch_failed"
+            if "获取数据失败" in stdout_text:
+                reason = "datacenter_ip_walled"
+            return ExtractOutcome(ok=False, extractor_name="rednote:xhs", error=reason, raw_info={"stdout": stdout_text[-500:], "success_count": success_count, "failed_count": failed_count})
     except Exception as e:
         return ExtractOutcome(ok=False, extractor_name="rednote:xhs", error=f"subprocess_exception: {e}")
 

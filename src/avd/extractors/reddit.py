@@ -132,29 +132,33 @@ async def _try_rapidsave_direct_mux(url: str, dest: Path, opts: dict) -> Extract
     vid_id = vid_id_match.group(1)
 
     # Resolution ladder — probe and pick first that returns 200
-    # rapidsave may give us a specific resolution, or we probe the ladder
+    # Try BOTH CMAF_<RES>.mp4 (newer, separate audio) and DASH_<RES>.mp4 (older, audio embedded)
     chosen_res = None
-    if "CMAF_" in v_url:
-        # Already a specific resolution from rapidsave
+    chosen_res_url = None
+    if v_url and ("CMAF_" in v_url or "DASH_" in v_url):
+        # rapidsave gave us a specific resolution URL — use it
         chosen_res_url = v_url
     else:
-        # Probe the ladder
-        for res in ["1080", "720", "480", "360"]:
-            probe_url = f"https://v.redd.it/{vid_id}/CMAF_{res}.mp4"
-            try:
-                from avd.utils.http import get_client
-                client = await get_client()
-                r = await client.head(probe_url, headers={"User-Agent": "Mozilla/5.0"}, timeout=5.0)
-                if r.status_code == 200:
-                    chosen_res = res
-                    chosen_res_url = probe_url
-                    break
-            except Exception:
-                continue
-        if not chosen_res:
+        # Probe the ladder — try CMAF first, then DASH
+        from avd.utils.http import get_client
+        client = await get_client()
+        for fmt in ["CMAF", "DASH"]:
+            for res in ["1080", "720", "480", "360"]:
+                probe_url = f"https://v.redd.it/{vid_id}/{fmt}_{res}.mp4"
+                try:
+                    r = await client.head(probe_url, headers={"User-Agent": "Mozilla/5.0"}, timeout=5.0)
+                    if r.status_code == 200:
+                        chosen_res = res
+                        chosen_res_url = probe_url
+                        break
+                except Exception:
+                    continue
+            if chosen_res:
+                break
+        if not chosen_res_url:
             return ExtractOutcome(ok=False, extractor_name="reddit:rapidsave_direct", error="no_resolution_probed")
         audio_url = f"https://v.redd.it/{vid_id}/CMAF_AUDIO_128.mp4"
-    if not chosen_res and "CMAF_" not in v_url:
+    if not chosen_res and "CMAF_" not in (v_url or "") and "DASH_" not in (v_url or ""):
         # Fallback to whatever rapidsave gave us
         chosen_res_url = v_url
 

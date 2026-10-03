@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "agent-video-downloader"
-version = "1.0.0"
+version = "1.2.0"
 description = "yt-dlp for agents: a cloud-CLI multi-agent video downloader for TikTok, Instagram, Douyin, Rednote, Reddit, X.com"
 readme = "README.md"
 license = {text = "MIT"}
@@ -23,10 +23,18 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Internet :: WWW/HTTP",
     "Topic :: Multimedia :: Video",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
+# Project URLs for PyPI
+[project.urls]
+Homepage = "https://github.com/hamza140202/agent-video-downloader"
+Repository = "https://github.com/hamza140202/agent-video-downloader"
+Documentation = "https://github.com/hamza140202/agent-video-downloader#readme"
+Bug-Tracker = "https://github.com/hamza140202/agent-video-downloader/issues"
+Changelog = "https://github.com/hamza140202/agent-video-downloader/releases"
 dependencies = [
     "httpx>=0.27,<1.0",
     "aiofiles>=23.0",

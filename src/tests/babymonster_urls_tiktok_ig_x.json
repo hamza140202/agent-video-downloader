@@ -1,0 +1,141 @@
+{
+  "_meta": {
+    "task": "B1: Find real Babymonster (YG Entertainment K-pop group) interview/documentary video URLs on TikTok, Instagram, and Twitter/X",
+    "verified_by": "tikwm.com (TikTok), api.fxtwitter.com (X), instagram.com/p/<sc>/embed/captioned/ (Instagram)",
+    "created": "2026-11-01",
+    "notes": "All URLs verified live against their respective APIs. TikTok durations come from tikwm 'duration' field. X durations come from fxtwitter tweet.media.videos[0].duration. Instagram verified by embed endpoint returning valid HTML (~270KB). 4 URLs per platform minimum achieved."
+  },
+  "tiktok": [
+    {
+      "url": "https://www.tiktok.com/@babymonster_yg_tiktok/video/7385569255212846344",
+      "duration_s": 57,
+      "title": "BABYMONSTER - 'FOREVER' COUNTDOWN INTERVIEW I RUKA #BABYMONSTER #베이비몬스터 #RUKA",
+      "author": "babymonster_yg_tiktok",
+      "verified": true,
+      "verification_method": "tikwm.com api code=0, duration=57s"
+    },
+    {
+      "url": "https://www.tiktok.com/@babymonster_yg_tiktok/video/7384826946204470535",
+      "duration_s": 57,
+      "title": "BABYMONSTER - 'FOREVER' COUNTDOWN INTERVIEW I PHARITA #BABYMONSTER #베이비몬스터 #PHARITA",
+      "author": "babymonster_yg_tiktok",
+      "verified": true,
+      "verification_method": "tikwm.com api code=0, duration=57s"
+    },
+    {
+      "url": "https://www.tiktok.com/@babymonster_yg_tiktok/video/7659244521586216200",
+      "duration_s": 36,
+      "title": "Woo woo woo ⋆｡˚🩷 #BABYMONSTER #베이비몬스터 #ILIKEIT_challenge",
+      "author": "babymonster_yg_tiktok",
+      "verified": true,
+      "verification_method": "tikwm.com api code=0, duration=36s"
+    },
+    {
+      "url": "https://www.tiktok.com/@danhee.wave.kr/video/7638207978323365123",
+      "duration_s": 41,
+      "title": "Most biased members of BABYMONSTER. #viral #kpop #babymonsteryg #fypシ #kprofiles",
+      "author": "danhee.wave.kr",
+      "verified": true,
+      "verification_method": "tikwm.com api code=0, duration=41s"
+    },
+    {
+      "url": "https://www.tiktok.com/@tzuwice.ytb/video/7279453545315716385",
+      "duration_s": 34,
+      "title": "BABYMONSTER OFFICIAL POSITIONS #babymonster #baemon #positions #kprofiles",
+      "author": "tzuwice.ytb",
+      "verified": true,
+      "verification_method": "tikwm.com api code=0, duration=34s"
+    }
+  ],
+  "instagram": [
+    {
+      "url": "https://www.instagram.com/reel/DUX2kkij5ns/",
+      "shortcode": "DUX2kkij5ns",
+      "title": "BABYMONSTER Interview with M! Countdown MCs CORTIS (snippet mentions TMA interview about unit videos and TikTok content)",
+      "verified": true,
+      "verification_method": "instagram embed endpoint HTTP 200, ~272KB HTML"
+    },
+    {
+      "url": "https://www.instagram.com/reel/DH9ZA-sRZpA/",
+      "shortcode": "DH9ZA-sRZpA",
+      "title": "We NEED this to happen! Watch the full interview with #BABYMONSTER: RUKA & ASA are featured in the first episode of the BABYMONSTER All Night Nippon PODCAST",
+      "verified": true,
+      "verification_method": "instagram embed endpoint HTTP 200, ~274KB HTML"
+    },
+    {
+      "url": "https://www.instagram.com/reel/DcsiWTEMQeu/",
+      "shortcode": "DcsiWTEMQeu",
+      "title": "PART 2 OF BABYMONSTER INTERVIEW",
+      "verified": true,
+      "verification_method": "instagram embed endpoint HTTP 200, ~273KB HTML"
+    },
+    {
+      "url": "https://www.instagram.com/reel/DH8pXMBom04/",
+      "shortcode": "DH8pXMBom04",
+      "title": "#Ahyeon's energy >>> We asked the pop superstars of #BABYMONSTER—including Ahyeon, #Asa, #Chiquita, #Ruka, #Pharita, #Rami, and #Rora—to...",
+      "verified": true,
+      "verification_method": "instagram embed endpoint HTTP 200, ~276KB HTML"
+    },
+    {
+      "url": "https://www.instagram.com/reel/DZjYMkEJUIV/",
+      "shortcode": "DZjYMkEJUIV",
+      "title": "BABYMONSTER full interview at Inkigayo today. #yg #ygfamily",
+      "verified": true,
+      "verification_method": "instagram embed endpoint HTTP 200, ~271KB HTML"
+    },
+    {
+      "url": "https://www.instagram.com/reel/C8ruSpPycem/",
+      "shortcode": "C8ruSpPycem",
+      "title": "BABYMONSTER - 'FOREVER' COUNTDOWN INTERVIEW I ASA #DigitalSingle #FOREVER #CountdownInterview",
+      "verified": true,
+      "verification_method": "instagram embed endpoint HTTP 200, ~276KB HTML"
+    }
+  ],
+  "twitter": [
+    {
+      "url": "https://x.com/YGFacts_sprt/status/1855505411673383414",
+      "id": "1855505411673383414",
+      "duration_s": 119.666,
+      "title": "SBS Inkigayo's special comeback interview with BABYMONSTER! #2024MAMAVOTE #babymonster @YGBABYMONSTER_",
+      "author": "YGFacts_sprt",
+      "verified": true,
+      "verification_method": "fxtwitter api code=200, videos=1, duration=119.666s"
+    },
+    {
+      "url": "https://x.com/BABYMONGLOBAL/status/1809831478546563531",
+      "id": "1809831478546563531",
+      "duration_s": 94.328,
+      "title": "#BABYMONSTER's interview for Inkigayo FOREVER 1ST PERFORMANCE #FOREVER_at_Inkigayo #베이비몬스터 @YGBABYMONSTER_",
+      "author": "BABYMONGLOBAL",
+      "verified": true,
+      "verification_method": "fxtwitter api code=200, videos=1, duration=94.328s"
+    },
+    {
+      "url": "https://x.com/forbabymonster/status/1805981326757236905",
+      "id": "1805981326757236905",
+      "duration_s": 59.421,
+      "title": "'FOREVER' COUNTDOWN INTERVIEW with #ASA #BABYMONSTER #베이비몬스터 @YGBABYMONSTER_",
+      "author": "forbabymonster",
+      "verified": true,
+      "verification_method": "fxtwitter api code=200, videos=1, duration=59.421s"
+    },
+    {
+      "url": "https://x.com/YGBABYMONSTER_/status/1939973795848364446",
+      "id": "1939973795848364446",
+      "duration_s": 38.621,
+      "title": "#BABYMONSTER 'HOT SAUCE' OUT NOW. NOW ON YOUTUBE: https://youtu.be/xn8mQqz2xm...",
+      "author": "YGBABYMONSTER_",
+      "verified": true,
+      "verification_method": "fxtwitter api code=200, videos=1, duration=38.621s"
+    },
+    {
+      "url": "https://x.com/allkpop/status/1793671893532475611",
+      "id": "1793671893532475611",
+      "duration_s": 25.936,
+      "title": "Check out our full interview with #BABYMONSTER https://www.allkpop.com/article/2...",
+      "author": "allkpop",
+      "verified": true,
+      "verification_method": "fxtwitter api code=200, videos=1, duration=25.936s"
+    }
+  ]
+}

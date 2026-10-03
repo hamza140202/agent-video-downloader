@@ -1,131 +1,145 @@
-# agent-video-downloader (avd)
+# avd — agent-video-downloader
 
-> **yt-dlp for agents.** A cloud-CLI multi-agent video downloader for **TikTok, Instagram, Douyin, Rednote (Xiaohongshu), Reddit, X.com (Twitter)** — built for AI agents (Claude, GLM, Cursor, Cline) that need to fetch video bytes in long-running task workflows, with no browser, no cookies, no login.
+> **yt-dlp for cloud AI agents.** One command downloads videos from **TikTok, Instagram, Douyin, Rednote (Xiaohongshu), Reddit, X.com** — no browser, no cookies, no login. Built for Claude / Cursor / Cline / GLM / GPT agents that need video bytes in task workflows.
 
-[![CI](https://github.com/Bilal140202/agent-video-downloader/actions/workflows/ci.yml/badge.svg)](https://github.com/Bilal140202/agent-video-downloader/actions)
+[![CI](https://github.com/hamza140202/agent-video-downloader/actions/workflows/ci.yml/badge.svg)](https://github.com/hamza140202/agent-video-downloader/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![PyPI version](https://img.shields.io/pypi/v/agent-video-downloader.svg)](https://pypi.org/project/agent-video-downloader/)
 
 ---
 
-## Why?
+## Quickstart — one command for AI agents
 
-`yt-dlp` is broken from datacenter IPs for TikTok, Twitter, Reddit, and Instagram (verified live 2026-10-03). Cloud CLI agents (Claude Code, GLM CLI, Cursor, Cline) that need to download videos for tasks like transcription, OCR, content analysis, or archival have no reliable path. This project fixes that with **direct-API fallback chains** that work from cloud IPs without login.
+```bash
+pip install agent-video-downloader
+avd agent-setup
+avd download 'https://www.tiktok.com/@scout2015/video/6718335390845095173'
+```
 
-- ✅ TikTok via TikWM mirror API (verified live)
-- ✅ Twitter/X via FixTweet API (verified live)
-- ⚠️ Reddit via OAuth2 (free script app, throwaway account)
-- ⚠️ Instagram best-effort (embed/captioned + og:image + third-party mirrors)
-- ⚠️ Rednote/Xiaohongshu best-effort (XHS-Downloader binary or HTML scrape)
-- ⚠️ Douyin documented as out-of-scope without self-hosted DTK sidecar
+`avd agent-setup` auto-installs ffmpeg, all Python deps, and the XHS-Downloader repo (for Rednote). It's idempotent — safe to re-run anytime.
 
-Honest negatives are first-class — `status: empty, reason: datacenter_ip_walled` is a valid result, not an error.
+For the full agent usage guide:
+```bash
+avd agent-instructions
+```
+
+---
+
+## Why
+
+`yt-dlp` is broken from datacenter IPs for TikTok, Twitter, Reddit, Instagram, Douyin. Cloud CLI agents (Claude Code, GLM CLI, Cursor, Cline) that need to download videos for tasks (transcription, OCR, content analysis, archival) have no reliable path. `avd` fixes that with **direct-API fallback chains** that work from cloud IPs without login.
+
+All six platforms download real video bytes (verified live 2026-10-03 from a Hong Kong datacenter IP):
+
+| Platform | Method | Sample download |
+|---|---|---|
+| **TikTok** | TikWM mirror API | 2.0 MB / 10.5 s |
+| **Twitter/X** | api.fxtwitter.com → video.twimg.com | 156 MB / 74.8 s 4K |
+| **Reddit** | rapidsave.com + v.redd.it CMAF + ffmpeg mux | 6.1 MB / 16.1 s |
+| **Instagram** | yt-dlp + facebookexternalhit/1.1 UA | 8.4 MB / 77.3 s |
+| **Douyin** | api.douyin.wtf public demo (zero-config) | 3.6 MB / 27.6 s |
+| **Rednote (XHS)** | XHS-Downloader (curl_cffi chrome146) | 8.4 MB / 720p |
+
+---
+
+## Commands
+
+| Command | Purpose |
+|---|---|
+| `avd agent-setup` | One-command bootstrap — installs ffmpeg, deps, XHS-Downloader |
+| `avd agent-instructions` | Print step-by-step usage guide for AI agents |
+| `avd download <url>` | Download one URL |
+| `avd batch <file>` | Batch download (one URL per line, `#` comments OK) |
+| `avd verify <path>` | Verify a downloaded file's integrity |
+| `avd test --smoke` | End-to-end self-test on one URL per platform |
+| `avd jobs` | List recent jobs |
+| `avd dlq` | List dead-letter queue entries |
+| `avd replay <dlq_id>` | Replay a failed job |
+| `avd mcp` | Start MCP server (stdio JSON-RPC 2.0) |
+| `avd supported` | Show supported platforms |
+| `avd agents` | Show agent versions |
 
 ---
 
 ## Install
 
-```bash
-# System deps (ffmpeg for verification)
-sudo apt install -y ffmpeg
+### From PyPI (recommended)
 
-# From source (development)
-git clone https://github.com/Bilal140202/agent-video-downloader.git
+```bash
+pip install agent-video-downloader
+avd agent-setup
+```
+
+### From source (development)
+
+```bash
+git clone https://github.com/hamza140202/agent-video-downloader
 cd agent-video-downloader
 pip install -e .[dev]
-
-# Verify
-avd --version
-avd test --smoke
+avd agent-setup
 ```
 
----
+### System requirements
 
-## Quickstart
-
-```bash
-# Download one video
-avd download 'https://www.tiktok.com/@scout2015/video/6718335390845095173' --dest ./download
-
-# Batch (one URL per line)
-avd batch urls.txt --dest ./download --concurrency 3
-
-# Verify a previously downloaded file
-avd verify ./download/tiktok/6718335390845095173.mp4
-
-# Self-test
-avd test --smoke
-avd test --full --platform tiktok --platform twitter
-
-# MCP server (stdio JSON-RPC 2.0)
-avd mcp
-```
+- Python 3.10+ (tested on 3.10, 3.11, 3.12, 3.13)
+- `ffmpeg` / `ffprobe` (auto-installed by `avd agent-setup` on Debian/Ubuntu; manual on other systems)
+- `git` (for cloning XHS-Downloader on first Rednote download)
 
 ---
 
-## Platform support matrix
-
-| Platform | Primary method | Status from cloud IP | Honesty |
-|---|---|---|---|
-| **TikTok** | `tikwm.com/api/?url=…&hd=1` | ✅ Verified live 2026-10-03 | Full HD video + music + cover |
-| **Twitter/X** | `api.fxtwitter.com/status/<id>` | ✅ Verified live 2026-10-03 | All mp4 variants + photos |
-| **Reddit** | `yt-dlp Reddit` + OAuth2 | ⚠️ Requires throwaway OAuth app | `oauth_required` if not configured |
-| **Instagram** | `embed/captioned/` (facebookexternalhit UA) + og:image + mirrors | ⚠️ Best-effort from datacenter | `datacenter_ip_walled` honest empty if blocked |
-| **Rednote** | `XHS-Downloader` binary / yt-dlp XiaoHongShu / HTML scrape | ⚠️ Best-effort, low-res without cookie | `xsec_token_missing` honest empty |
-| **Douyin** | `yt-dlp Douyin` + anonymous cookies / DTK sidecar | ❌ Walled without Docker sidecar | `datacenter_ip_walled` honest empty |
-
----
-
-## Configuration
-
-All config via env vars (or `.env` file):
+## Configuration (env vars)
 
 | Var | Default | Description |
 |---|---|---|
 | `AVD_DOWNLOAD_DIR` | `./download` | Default download destination |
-| `AVD_DB_PATH` | `~/.avd/jobs.sqlite` | SQLite jobs table for resume |
-| `AVD_LOG_LEVEL` | `INFO` | `DEBUG` / `INFO` / `WARNING` / `ERROR` |
-| `AVD_REDDIT_CLIENT_ID` | — | Reddit OAuth script-app client ID |
-| `AVD_REDDIT_CLIENT_SECRET` | — | Reddit OAuth script-app client secret |
-| `AVD_REDDIT_USERNAME` | — | Throwaway Reddit username (script-app flow) |
-| `AVD_REDDIT_PASSWORD` | — | Throwaway Reddit password (script-app flow) |
-| `AVD_DOUYIN_DTK_URL` | — | Self-hosted DTK API base URL (e.g., `http://localhost:8000`) |
+| `AVD_LOG_LEVEL` | `INFO` | `DEBUG`/`INFO`/`WARNING`/`ERROR` |
+| `AVD_REDDIT_CLIENT_ID` | — | Reddit OAuth (only needed if rapidsave.com fails) |
+| `AVD_REDDIT_CLIENT_SECRET` | — | same |
+| `AVD_REDDIT_USERNAME` | — | throwaway Reddit username |
+| `AVD_REDDIT_PASSWORD` | — | throwaway Reddit password |
+| `AVD_DOUYIN_DTK_URL` | — | self-hosted Evil0ctal DTK (optional — defaults to public demo) |
+| `AVD_XHS_DOWNLOADER_PATH` | `~/XHS-Downloader` | override XHS-Downloader clone path |
 | `AVD_PROXY` | — | SOCKS5/HTTP proxy URL for all requests |
-| `AVD_USER_AGENT` | `Mozilla/5.0 ...` | Default User-Agent |
 
 ---
 
-## Architecture
-
-Four Python agents (NOT LLM-backed — deterministic):
-
-- **Orchestrator** — owns the extractor registry, drives the fallback chain, persists job state.
-- **Verifier** — 6-layer file integrity check (size, magic bytes, ffprobe, duration, streams, moov atom).
-- **Truth Agent** — cross-references downloaded metadata against the source platform (oEmbed, syndication, RSS, OG tags).
-- **Tester** — runs end-to-end on `tests/sample_urls.json`.
+## Architecture (4 plain-Python agents, no LLM in runtime loop)
 
 ```
-URL → Orchestrator → [TikTok|Twitter|Reddit|IG|Rednote|Douyin] extractors (fallback chain)
-                  → Verifier (ffprobe + magic bytes)
-                  → Truth Agent (source cross-check)
-                  → verified MP4 + manifest.json
+URL → Orchestrator → [TikTok|Twitter|Reddit|Instagram|Rednote|Douyin] extractors (fallback chain)
+                     → Verifier (6-layer: size, magic bytes, ffprobe, duration, streams, moov)
+                     → Truth Agent (cross-check vs source platform: oEmbed / syndication / RSS / OG)
+                     → verified MP4 + manifest
 ```
 
-Full design: [`docs/architecture.md`](docs/architecture.md).
-Full research: [`docs/research-report.md`](docs/research-report.md).
+- **Orchestrator** — owns the extractor registry, drives the fallback chain, persists job state to SQLite
+- **Verifier** — 6-layer integrity check (size + magic bytes + ffprobe + duration + streams + moov atom)
+- **Truth Agent** — cross-references downloaded metadata against source platform
+- **Tester** — runs end-to-end on `tests/sample_urls.json`
+
+Per-platform fallback chains (slot-based state machine, ytagent doctrine):
+- **TikTok**: TikWM → embed/v2 → tiklydown → oEmbed
+- **Twitter/X**: fxtwitter → syndication → unrollnow → vxtwitter
+- **Reddit**: rapidsave.com/info + v.redd.it CMAF direct + ffmpeg mux → rapidsave server-side mux → yt-dlp+OAuth → RSS image
+- **Instagram**: yt-dlp+facebookexternalhit UA → embed/captioned+fb-UA → embed+android-UA → embed+ios-UA → ddinstagram mirror
+- **Douyin**: api.douyin.wtf demo → self-hosted DTK sidecar → yt-dlp
+- **Rednote**: XHS-Downloader (curl_cffi) → curl_cffi direct → yt-dlp
+
+Full design: [`docs/architecture.md`](docs/architecture.md) · Full research: [`docs/research-report.md`](docs/research-report.md)
 
 ---
 
 ## Documentation
 
-- [`CLAUDE.md`](CLAUDE.md) — project memory (read first)
-- [`AGENTS.md`](AGENTS.md) — agent contracts & perfection prompting
+- [`CLAUDE.md`](CLAUDE.md) — project memory (read first if modifying)
+- [`AGENTS.md`](AGENTS.md) — agent contracts + perfection prompting rules
 - [`TECHSTACK.md`](TECHSTACK.md) — every dependency, every version, why
 - [`PHASES.md`](PHASES.md) — development phases with exit criteria
 - [`PLAN.md`](PLAN.md) — concrete execution plan with task IDs
 - [`SKILLS.md`](SKILLS.md) — per-agent skill spec sheets
-- [`docs/research-report.md`](docs/research-report.md) — live-verified endpoint research
-- [`docs/architecture.md`](docs/architecture.md) — system design
+- [`docs/research-report.md`](docs/research-report.md) — live-verified endpoint research per platform
+- [`docs/architecture.md`](docs/architecture.md) — system design with ASCII diagram
 - [`docs/endpoint-matrix.md`](docs/endpoint-matrix.md) — living endpoint table
 
 ---
@@ -133,3 +147,8 @@ Full research: [`docs/research-report.md`](docs/research-report.md).
 ## License
 
 MIT. See [LICENSE](LICENSE).
+
+## Repo
+
+- Primary: https://github.com/hamza140202/agent-video-downloader
+- Issues: file on GitHub with the `metadata.extractor_chain` and `metadata.slots_tried` from your run's manifest attached
