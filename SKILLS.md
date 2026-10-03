@@ -2,6 +2,8 @@
 
 > **The capability inventory.** Each agent has a skill sheet: what it can do, what it cannot do, what triggers it, what inputs it accepts, what outputs it produces, and how to invoke it. This is the document an orchestrator reads to decide which agent to call.
 
+> **Status:** ✅ v1.2.0 PyPI-published, 2026-10-03. https://pypi.org/project/agent-video-downloader/
+
 ---
 
 ## Skill sheet format

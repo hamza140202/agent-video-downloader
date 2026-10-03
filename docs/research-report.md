@@ -1,10 +1,12 @@
 # Research Report: Video Downloader Tech for TikTok, Instagram, Douyin, Rednote, Reddit, X.com
 
-**Task ID**: 2-a
+**Task ID**: 2-a (initial) + T1-T5 (v1.1 verification) + B1-B2 (v1.2 Babymonster batch)
 **Agent**: Research Agent 1
-**Date**: 2026-10-03
+**Date**: 2026-10-03 (v1.0 initial) → 2026-10-03 (v1.1 verification) → 2026-10-03 (v1.2 final)
 **Environment**: Cloud Linux VM, Python 3.12.14, datacenter IP class (HKG region)
 **Constraints**: No browser, no cookies, no login session, no GUI, no paid APIs, Python 3 + pip + curl + wget only.
+
+**Status:** ✅ v1.2.0 PyPI-published. https://pypi.org/project/agent-video-downloader/
 
 ---
 

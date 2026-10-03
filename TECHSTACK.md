@@ -2,6 +2,8 @@
 
 > **The dependency manifest.** Every line in `requirements.txt` and `pyproject.toml` is justified here. If a library is in the install graph, it has a rationale below. No orphan dependencies.
 
+> **Status:** ✅ v1.2.0 PyPI-published, 2026-10-03. https://pypi.org/project/agent-video-downloader/
+
 ---
 
 ## 0. Python runtime

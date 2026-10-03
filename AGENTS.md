@@ -2,6 +2,8 @@
 
 > **The contract document.** Every agent in this system is specified here as a Protocol interface, a behavioral contract, and an "if-then" decision tree. When an LLM agent (Claude, GLM, etc.) is invoked to modify or extend this system, it MUST read this file first and treat these contracts as inviolable.
 
+> **Status:** ✅ v1.2.0 PyPI-published, 2026-10-03. Install: `pip install agent-video-downloader && avd agent-setup`. Live on https://pypi.org/project/agent-video-downloader/
+
 ---
 
 ## 0. Agent taxonomy

@@ -4,6 +4,8 @@
 > **Scope:** A single-machine, pure-Python, multi-agent CLI orchestrator for downloading short-form videos from TikTok, Instagram, Douyin, Rednote (Xiaohongshu), Reddit, and X.com (formerly Twitter).
 > **Constraint:** No external LLM API calls. The "agents" are Python modules with typed interfaces, not LLM-backed chat agents.
 
+> **Status:** ✅ v1.2.0 PyPI-published, 2026-10-03. https://pypi.org/project/agent-video-downloader/
+
 ---
 
 ## 1. Executive Summary

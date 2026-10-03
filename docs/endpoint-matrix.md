@@ -1,5 +1,7 @@
 # Living endpoint matrix — re-verified weekly.
 # Status: ✅ verified live | ⚠️ best-effort | ❌ broken from datacenter IP | ❓ untested
+#
+# avd v1.2.0 PyPI-published 2026-10-03 — https://pypi.org/project/agent-video-downloader/
 
 | Platform | Endpoint | Role | Status | Last verified | Vantage | Failure signal |
 |---|---|---|---|---|---|---|
