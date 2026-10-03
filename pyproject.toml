@@ -4,14 +4,20 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "agent-video-downloader"
-version = "1.2.0"
+version = "1.2.1"
 description = "yt-dlp for agents: a cloud-CLI multi-agent video downloader for TikTok, Instagram, Douyin, Rednote, Reddit, X.com"
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.10"
 authors = [
-    {name = "Bilal140202", email = "noreply@github.com"},
+    {name = "ansaribilal1402", email = "noreply@github.com"},
 ]
+maintainers = [
+    {name = "ansaribilal1402", email = "noreply@github.com"},
+]
+# Research sources — see CONTRIBUTORS.md for full attribution.
+# The Bilal140202/* family of repos (ytagent, ttagent, igagent, xthread-agent)
+# contributed architectural patterns during the audit phase. See docs/research-blog.md §3.1.
 keywords = ["video", "downloader", "tiktok", "instagram", "douyin", "rednote", "xiaohongshu", "reddit", "twitter", "agents", "cli", "mcp"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",

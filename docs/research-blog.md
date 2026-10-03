@@ -13,6 +13,7 @@
 1. [The Premise](#1-the-premise)
 2. [The Problem Space](#2-the-problem-space)
 3. [Research Phase — What We Knew Before Writing Code](#3-research-phase--what-we-knew-before-writing-code)
+    - [3.1 The Reference Architecture — How Existing Agent Repos Shaped This Build](#31-the-reference-architecture--how-existing-agent-repos-shaped-this-build)
 4. [First Build — The Honest-Negative Architecture](#4-first-build--the-honest-negative-architecture)
 5. [The Reckoning — When "Honest Empty" Was the Wrong Answer](#5-the-reckoning--when-honest-empty-was-the-wrong-answer)
 6. [The Pivot — Going Back to Research With Surgical Agents](#6-the-pivot--going-back-to-research-with-surgical-agents)
@@ -124,6 +125,139 @@ The audit covered the major open-source projects in the space. Key takeaways:
 - **A popular Xiaohongshu downloader binary** — uses `curl_cffi` with browser impersonation; works from datacenter IPs without a cookie (with quality limits).
 - **Self-hosted Douyin/TikTok API servers** — large infrastructure (Docker + headless browser + Postgres + Redis), but the operator's public demo endpoints accept anonymous traffic.
 - **The `Bilal140202` family of repos** — single-platform agent repos that established a slot-based fallback-chain doctrine with verified-delivery guarantees.
+
+### 3.1 The Reference Architecture — How Existing Agent Repos Shaped This Build
+
+Among the audited projects, a family of four single-platform agent repos (`ytagent` for YouTube, `ttagent` for TikTok, `igagent` for Instagram, `xthread-agent` for Twitter/X) occupied a distinctive niche: each was built explicitly for the same use case we were targeting — invocation by AI agents in cloud sandboxes, with no browser, no cookies, no login. Each was a single-file (or near-single-file) Python implementation that documented, in code, exactly which endpoints work from datacenter IPs and how to chain them.
+
+These repos were treated as primary sources — not because they were popular (they weren't; star counts were low) but because they were the only repos in the audit whose stated design constraints matched ours. Where `yt-dlp` and `gallery-dl` are general-purpose tools that *happen* to be usable from datacenter IPs when their extractors work, these four repos were designed *specifically* for the datacenter-IP case and made their reasoning explicit in their READMEs and per-platform endpoint matrices.
+
+The audit extracted specific architectural patterns from each. What follows is a per-repo breakdown of what was adopted, what was modified, and what was discarded. The intent is research-grade attribution, not promotion — each repo's contributions are documented alongside the limitations or tradeoffs that prevented wholesale adoption.
+
+> 💛 **Tech in a Minute — What is an "endpoint matrix"?**
+>
+> An endpoint matrix is a living document (usually a markdown table) that lists every external endpoint a tool depends on, with columns for: the endpoint URL pattern, its role (decode / deliver / walk), its current status (verified live / best-effort / broken from datacenter IP / untested), the failure signal it produces when broken, the last verification date, and the vantage point of the verification (datacenter vs residential IP).
+>
+> The matrix is "living" in the sense that endpoints flip status over time — a working mirror dies, a broken API comes back, a new bypass is discovered. The matrix is the source of truth; the code is the implementation of the matrix. Re-verifying the matrix weekly is part of the maintenance contract.
+
+#### `ttagent` — TikTok reference
+
+`ttagent` documents a four-slot decode chain for TikTok URLs, in priority order:
+
+1. `tikwm.com` mirror worker API (`www.tikwm.com/api/?url=<enc>&hd=1`) — returns JSON with HD/clean/watermarked URLs plus music and stats
+2. TikTok embed v2 hydration blob (`www.tiktok.com/embed/v2/<id>`) — parse the `__UNIVERSAL_DATA_FOR_REHYDRATION__` / `SIGI_STATE` JSON inside the embed page
+3. Tiklydown second mirror (`api.tiklydown.eu.org/api/download?url=…`) — backup mirror
+4. TikTok oEmbed (`www.tiktok.com/oembed?url=…`) — official metadata-only last resort (never carries video bytes)
+
+The doctrine documented in `ttagent`'s README is explicit: each slot is independently replaceable. When TikWM rate-limits or dies, slot 2 takes over without restructuring the pipeline. When slot 2's embed hydration returns a shell (which happens intermittently), slot 3 is tried. Slot 4 is the metadata-only floor — it returns author and title but no video URL, and the caller is told `downloadable: false, reason: "no_video_url_exposed"` rather than receiving a silent failure.
+
+The audit adopted this chain verbatim for the TikTok extractor. The four slots were transferred with two modifications: (a) the embed v2 parser was hardened to handle the `\u002F` JSON-escape that TikTok intermittently applies to its hydration blob, and (b) a CDN allowlist was added to slot 1's download step, restricting bytes-fetching to `*.tiktokcdn-us.com`, `*.tikwm.com`, `*.tiktok.com`, and a small set of known first-party hostnames. The CDN allowlist was an extension to `ttagent`'s doctrine — `ttagent` trusts whatever URL TikWM returns; the audit's version rejects URLs that don't match the allowlist, treating them as a CDN-not-allowed honest-empty.
+
+`ttagent`'s honest-empty reporting — `status: "empty"` with a structured `reason` rather than an exception — was adopted as a first-class pattern across all six platforms in this project's v1.0. The v1.1 pivot (Section 5) would later critique this pattern for being too generously applied, but the underlying principle — structured negatives, never exceptions — was kept.
+
+#### `igagent` — Instagram reference
+
+`igagent` is the most architecturally interesting of the four reference repos because it documents a *failure mode* as a first-class outcome. Its three-slot decode chain is:
+
+1. `embed_json` — the legacy `__additionalDataLoaded` payload from `instagram.com/p/<code>/embed/captioned/`
+2. `embed_html` — the unfurler SSR HTML returned when the request uses the `facebookexternalhit/1.1` User-Agent
+3. `og_meta` — OpenGraph tags (`og:image`, `og:video:secure_url`) from `/p/<code>/` with the same facebookexternalhit UA
+
+The critical contribution of `igagent` to this project is documented in its README: it explicitly identifies `facebookexternalhit/1.1` (Facebook's external link crawler, used for rendering link previews in Facebook posts) as a User-Agent that Instagram's SSR layer treats as a legitimate crawler and serves the unfurler HTML to — including the actual CDN media URLs. Plain Chrome UA gets the JavaScript shell; `facebookexternalhit` gets the rendered HTML.
+
+This is the single most important architectural transfer in the project. Without `igagent`'s documented discovery of the facebookexternalhit bypass, the v1.1 Instagram fix (Section 7, Discovery 2) would not have been attempted — the original research had concluded Instagram was "fully walled from datacenter IPs without cookies," and there was no obvious reason to try a Facebook crawler UA. `igagent`'s README provided the reason.
+
+`igagent` also documents a class of honest-negative that this project adopted: `downloadable: false, reason: "no_video_url_exposed"`. This is distinct from a 403 or an empty shell — it's the case where the embed endpoint returns 200 with valid HTML, the SSR payload parses, but no media URL is present in the payload (because the post is image-only, or because Instagram chose not to expose video for that specific post). The honest-negative is "the platform told us this URL exists but has no downloadable video," not "we couldn't reach the platform."
+
+The audit adopted this distinction. The v1.0 Instagram extractor returned `datacenter_ip_walled` for any failure; the v1.1 version distinguishes between `datacenter_ip_walled` (got empty shell, wall is the cause) and `no_video_in_embed` (got valid SSR HTML, no media URL is exposed — the post genuinely has no video). This distinction matters for callers: the first is a retry-with-different-UA candidate; the second is a permanent negative for that URL.
+
+#### `xthread-agent` — Twitter/X reference
+
+`xthread-agent` documents a multi-component pipeline rather than a linear slot chain, reflecting Twitter's thread topology:
+
+1. **Thread Walker** — `unrollnow.com/status/<root_id>` (primary) with `threadreaderapp.com/thread/<root_id>` (fallback). Returns HTML embedding candidate tweet IDs. The README documents an important caveat: unrollnow embeds same-author recommendations that are NOT thread members, so chain membership must be verified via the decoder's `replying_to_status` field rather than via the walker's output alone.
+2. **Metadata Decoder** — `api.fxtwitter.com/status/<id>` (primary) with `api.vxtwitter.com` (fallback). Returns full tweet JSON including `media.videos[]` with format variants and `media.photos[]` with image URLs.
+3. **Chain Reconstructor** — uses the decoder's `replying_to_status` field to walk up the chain and reconstruct the thread in order.
+4. **Media Fetcher** — downloads from `video.twimg.com/...mp4` (video) and `pbs.twimg.com/...jpg` (images), with the `?name=` parameter controlling photo resolution.
+
+The audit adopted the decoder chain (fxtwitter → vxtwitter) and the CDN allowlist (`video.twimg.com`, `pbs.twimg.com`) directly. The thread walker (unrollnow → threadreaderapp) was adopted with the documented caveat about filtering by `replying_to_status` — the audit's Twitter extractor only treats walker output as candidates, not as authoritative chain membership.
+
+The vxtwitter fallback slot is documented in `xthread-agent`'s endpoint matrix as "Cloudflare-challenged from datacenter IPs — re-verify status weekly." This proved accurate: during the v1.1 verification pass, vxtwitter intermittently returned Cloudflare's "Just a moment" challenge page. The slot is kept in the chain as a last-resort fallback but is not relied upon as primary.
+
+`xthread-agent`'s most important contribution is the endpoint matrix format itself: a living markdown table with columns for surface URL pattern, role, status (✅/⚠️/❌), failure signal (machine-usable), last verified date, and vantage point. This format was adopted wholesale as the project's `docs/endpoint-matrix.md`. The re-verification protocol (weekly curl probes with status column updates) was also adopted.
+
+#### `ytagent` — YouTube reference (doctrine source)
+
+`ytagent` is the architecturally richest of the four reference repos. Its README documents a 13-method fallback chain for YouTube — by far the longest chain in the family — and introduces several patterns that the audit adopted as the project's foundational doctrine.
+
+**The 13-method chain** itself was not directly applicable (YouTube is out of scope for this project), but its *structure* was the template. The chain is organized in tiers, where each tier represents a different category of bypass:
+
+- Tier 1-3: Direct yt-dlp extractor variants with different innertube clients (`android_vr`, `web_safari`, etc.)
+- Tier 4-6: Self-hosted Cobalt community relays (single-binary, no Docker)
+- Tier 7-9: Invidious federated frontends with `local=true` proxy parameter
+- Tier 10-12: SOCKS5 proxy farm — discover free public SOCKS5 proxies, test 50 in parallel with a two-phase test (page fetch + API POST), use only those that pass both
+- Tier 13: GitHub Actions remote download farm — trigger a workflow on GitHub's Azure runners (residential IPs), download the video there, upload as a workflow artifact, fetch the artifact back via the GitHub API
+
+The audit adopted the tier structure as a general framework for thinking about bypasses, even though only Tier 1-style direct methods (with platform-specific mirrors and UA bypasses) ended up being necessary for the six target platforms. The higher tiers (SOCKS5 farm, GitHub Actions farm) are documented in the project's `PHASES.md` as Phase 7 future work — they would be needed if the v1.1 discoveries (which obviated the need for higher tiers) stopped working.
+
+**The 6-layer Verifier** is `ytagent`'s most directly transferred contribution. The six layers, as documented in `ytagent`'s README:
+
+1. Size ≥ 1 MB (configurable)
+2. Magic bytes (file-type signature at offset 0)
+3. `ffprobe` exit 0
+4. Duration > 0
+5. At least one stream exists
+6. `moov` atom present at a sane offset (MP4 only — defends against truncated moov-write before crash)
+
+The audit adopted all six layers verbatim for the project's Verifier agent. Two modifications were made during the v1.2 batch-test phase: (a) the size threshold was made adaptive based on magic-byte detection (50 KB for images, 5 KB for audio, 1 MB for video), and (b) the moov atom check was changed to only flag failure when ffprobe ALSO fails — a quirk surfaced when streaming-muxed MP4s (which have moov at the END of the file, outside the 4 MB head search window) were being falsely rejected.
+
+**The Truth Agent pattern** — a separate agent that cross-references downloaded artifact metadata against the source platform's own statement about the content — is documented in `ytagent`'s README as ranking methods by observed success rate. The audit adopted the cross-reference pattern but simplified the ranking: instead of maintaining a per-method success/failure count and demoting methods after N consecutive failures, the project's Truth Agent is advisory-only and per-call. The Truth Agent's verdict (`verified` / `suspicious` / `unverifiable`) is reported alongside the Verifier's hard `integrity_ok` gate but does not affect the fallback chain's ordering.
+
+This simplification is a deliberate tradeoff. `ytagent`'s per-method ranking is more sophisticated — it adapts to observed reliability over time — but requires persistent state (a `truth.json` file tracking success counts per method). The audit's version is stateless per call, which is simpler to reason about in a cloud-agent context where the same agent invocation may not run again. The `ytagent` approach is the right one for a long-running service; the audit's approach is the right one for a one-shot CLI invoked by an agent.
+
+**The MCP wrapper** — newline-delimited JSON-RPC 2.0 over stdio, exposing `extract_*`, `lookup_*`, `read_manifest`, `get_schema` methods — is documented in `ytagent`'s README and was adopted in the project's `avd mcp` command with minor renaming (`extract` instead of `extract_<platform>` because the orchestrator handles routing). The "honest empties are not MCP errors; bad tool arguments, timeouts, and crashes are" rule is documented in `ytagent` and adopted verbatim — the project's MCP server returns structured `DownloadResult` objects with `status: "empty"` rather than raising JSON-RPC errors for content-not-found cases.
+
+**The "slots, not brands" doctrine** is the most abstract `ytagent` contribution and the most foundational. The doctrine states: each decode surface is an interchangeable implementation of one contract. When a mirror dies, replace the slot — the pipeline never restructures. The audit adopted this as the project's first architectural principle and applied it across all six extractors. The v1.1 pivot (Section 6) was, in effect, a slot-replacement exercise — slots that returned `datacenter_ip_walled` were replaced with slots that returned real video bytes, without restructuring the orchestrator or Verifier.
+
+> 💛 **Tech in a Minute — What is "innertube"?**
+>
+> Innertube is the internal name for YouTube's private API. The YouTube web player and mobile apps use Innertube to fetch video metadata, streaming URLs, and player configuration. Innertube clients are identified by client name (`web`, `android`, `ios`, `android_vr`, `tv_embedded`, etc.) and each has slightly different behavior — some clients bypass region locks, some bypass age gates, some are not subject to the same throttling as the web client.
+>
+> `yt-dlp` can be configured to use different innertube clients via the `--extractor-args` flag. The `android_vr` client in particular is documented (in `ytagent` and elsewhere) as bypassing some datacenter-IP blocks that affect the `web` client. This is a YouTube-specific instance of the broader pattern: platforms serve different content to different client types, and the client type can be selected by the caller.
+>
+> The same pattern appears in non-YouTube platforms: Instagram serves different content to `facebookexternalhit` than to Chrome. Reddit serves different content to its mobile-app UA than to curl. The principle is general; the specific client-type identifiers are platform-specific.
+
+#### What was not adopted
+
+For research integrity, it is worth documenting what was NOT adopted from the reference repos:
+
+- **Single-file architecture.** `ttagent`, `igagent`, and `xthread-agent` are each a single Python file (or near-single file) with zero pip dependencies. The audit's project is a multi-file package with 17 dependencies (httpx, pydantic, tenacity, etc.). The tradeoff: the reference repos can be copied into a bare sandbox and run; the audit's project requires `pip install` but provides better error messages, async I/O, structured logging, and SQLite state persistence. The reference-repo approach is more portable; the audit's approach is more maintainable.
+- **Per-method success ranking.** As discussed above, `ytagent`'s persistent per-method success/failure tracking was simplified to per-call advisory verdicts.
+- **13-method chain depth.** The audit's per-platform chains are 3-5 slots, not 13. YouTube's harder IP-block landscape (POT providers, BGutil, residential proxy farms) warrants the depth; the six target platforms, post-v1.1-discoveries, do not.
+- **Browser-fallback extractor.** `ytagent` documents a Playwright-based last-resort extractor. The audit's project keeps browser automation strictly opt-in (not in default install) and does not wire it as a slot in any platform's chain. The Rednote extractor's XHS-Downloader subprocess is the closest equivalent, but XHS-Downloader uses `curl_cffi` (TLS impersonation), not a real browser.
+
+#### Summary of attribution
+
+The four reference repos collectively contributed:
+
+| Pattern | Source repo | Adoption |
+|---|---|---|
+| 4-slot TikTok chain (TikWM → embed v2 → tiklydown → oEmbed) | `ttagent` | Adopted verbatim with CDN allowlist extension |
+| facebookexternalhit UA bypass for Instagram | `igagent` | Adopted verbatim — this was the critical v1.1 fix |
+| fxtwitter → vxtwitter decoder chain | `xthread-agent` | Adopted verbatim |
+| Thread walker (unrollnow → threadreaderapp) with `replying_to_status` filtering | `xthread-agent` | Adopted with candidate-only treatment of walker output |
+| Living endpoint matrix format | `xthread-agent` | Adopted verbatim as `docs/endpoint-matrix.md` |
+| 6-layer Verifier (size, magic, ffprobe, duration, streams, moov) | `ytagent` | Adopted verbatim with adaptive size + moov-on-failure-fix modifications |
+| Truth Agent pattern (cross-reference against source platform) | `ytagent` | Adopted as advisory-only per-call (simplified from ytagent's persistent ranking) |
+| Tiered bypass doctrine (Cobalt → SOCKS5 farm → federated frontends → GitHub Actions farm) | `ytagent` | Adopted as conceptual framework, documented as Phase 7 future work |
+| "Slots, not brands" replaceable-slot principle | `ytagent` | Adopted as foundational architectural principle |
+| MCP wrapper (JSON-RPC 2.0 over stdio, honest empties are not errors) | `ytagent` | Adopted verbatim with method renaming |
+| Honest-negative as structured outcome (`status: "empty"`, not exception) | all four | Adopted, with the v1.1 critique that "honest negative" should not cover unsolved engineering problems |
+| Atomic writes (.part → os.replace) | all four | Adopted verbatim |
+| Logs on stderr, data on stdout (pipe-safe) | all four | Adopted verbatim |
+| Living endpoint-matrix weekly re-verification protocol | all four | Adopted verbatim, documented as maintenance contract |
+
+The four reference repos are not dependencies of this project — they are not imported, not installed, not vendored. They are research sources: their READMEs and per-platform endpoint matrices were read during the audit phase, and their architectural patterns were transferred into this project's codebase. The attribution is intellectual, not technical. The repos remain independent projects maintained by their respective authors.
 
 ### The doctrine that emerged
 
