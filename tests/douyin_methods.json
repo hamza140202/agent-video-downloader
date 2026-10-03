@@ -1,0 +1,148 @@
+{
+  "_meta": {
+    "task_id": "T4",
+    "agent": "Research Agent T4",
+    "date": "2026-10-03",
+    "objective": "Find a working method to download Douyin videos from a datacenter IP without login",
+    "constraint_summary": "Cloud Linux VM, no login/cookies, no paid APIs, polite bounded retries",
+    "verified_live_at": "2026-10-03T13:07:00Z",
+    "verifying_ip_class": "datacenter (HK region per prior research worklog)"
+  },
+  "verified_working_methods": [
+    {
+      "name": "dtk_console_demo_at_api_douyin_wtf",
+      "description": "Evil0ctal's self-hosted Douyin_TikTok_Download_API v5 public demo instance. The operator publishes demo credentials via the unauthenticated /api/v1/auth/demo endpoint. Login with the demo creds returns a session cookie carrying the douyin:read scope. The session can then call /api/v1/douyin/video (or the unified /api/v1/parse) to fetch full video metadata including direct CDN URLs. The instance runs CloakBrowser (Chromium 146) with 572 active minted Douyin identities at time of verification — so all the signature/cookie-minting heavy lifting happens on the demo operator's infrastructure, not ours. From the datacenter IP perspective this is anonymous (no account creation, no Douyin login, no cookies we own).",
+      "endpoint_pattern": "https://api.douyin.wtf/api/v1/douyin/video?aweme_id={aweme_id}&wait={seconds}",
+      "auth_flow": [
+        "GET  https://api.douyin.wtf/api/v1/auth/demo            (anonymous) -> {username:'demo', password:'kelp-kelp-delta-3690'}",
+        "POST https://api.douyin.wtf/api/v1/auth/login           {username,password} -> Set-Cookie: dtk_session=...",
+        "GET  https://api.douyin.wtf/api/v1/douyin/video?aweme_id=...&wait=25   (with cookie) -> JSON with media.video.urls[]"
+      ],
+      "curl_example": "# 1. Fetch published demo credentials (anonymous)\nDEMOCREDS=$(curl -s https://api.douyin.wtf/api/v1/auth/demo)\nUSER=$(echo $DEMOCREDS | jq -r .data.username)\nPASS=$(echo $DEMOCREDS | jq -r .data.password)\n# 2. Login -> cookie jar\ncurl -s -c /tmp/dtk_cookies.txt \\\n  -X POST -H 'Content-Type: application/json' \\\n  -d \"{\\\"username\\\":\\\"$USER\\\",\\\"password\\\":\\\"$PASS\\\"}\" \\\n  https://api.douyin.wtf/api/v1/auth/login\n# 3. Fetch video metadata (synchronous wait)\nAWEME_ID=7324982373882400063\ncurl -s -b /tmp/dtk_cookies.txt \\\n  \"https://api.douyin.wtf/api/v1/douyin/video?aweme_id=$AWEME_ID&wait=25\" \\\n  -o video.json\n# 4. Extract CDN URL and download\nVID_URL=$(jq -r '.data.media.video.urls[0]' video.json)\ncurl -s -H 'Referer: https://www.douyin.com/' \\\n  -H 'User-Agent: Mozilla/5.0 ...' \\\n  -o \"${AWEME_ID}.mp4\" \"$VID_URL\"",
+      "verified_live": true,
+      "verified_live_at": "2026-10-03T13:07:00Z",
+      "real_aweme_id_used": "7324982373882400063",
+      "real_video_title": "海归大熊猫的日常小碎片 大熊猫“梵星”怼脸拍，大脸ber圆圆的，最后把小手手放腿上和音乐结尾同步~",
+      "real_video_author": "中国大熊猫保护研究中心",
+      "real_video_duration_ms": 27586,
+      "real_video_stats": {
+        "digg_count": 4467,
+        "share_count": 361,
+        "collect_count": 249,
+        "comment_count": 29
+      },
+      "downloaded_file_path": "/home/z/my-project/agent-video-downloader/download/douyin/7324982373882400063.mp4",
+      "downloaded_file_size_bytes": 5099949,
+      "downloaded_file_mime": "video/mp4",
+      "downloaded_file_magic": "ISO Media, MP4 Base Media v1 [ISO 14496-12:2003]",
+      "downloaded_file_codecs": "h264 (video, 1080x1920) + aac (audio)",
+      "cdns_observed": [
+        "v5-dy-ov-experiment.zjcdn.com",
+        "v5-hl-zenl-ov.zjcdn.com",
+        "www.douyin.com/aweme/v1/play/"
+      ],
+      "headers_required_for_cdn_download": {
+        "Referer": "https://www.douyin.com/",
+        "User-Agent": "any modern browser UA"
+      },
+      "caveats": [
+        "Demo instance is shared, rate-limited, and may be revoked or shut down by the operator at any time — not safe to depend on for production",
+        "Demo creds rotate; the /api/v1/auth/demo endpoint always returns the current valid demo password, so always fetch fresh rather than hardcoding",
+        "Cookie TTL is 7 days (expires_in: 604800) but the operator can revoke early; on 401, re-login",
+        "For short v.douyin.com share links, use POST /api/v1/parse with body {\"url\":\"https://v.douyin.com/xxx\"} — the worker expands the redirect internally",
+        "Verify the aweme_id is still alive before showing it to users: deleted videos return 404 NOT_FOUND from the upstream",
+        "Instance advertises wait_max=30 seconds; for hot aweme_ids the synchronous path returns in ~1s"
+      ],
+      "production_recommendation": "Use api.douyin.wtf demo for evaluation/CI only. For production self-host Evil0ctal/Douyin_TikTok_Download_API v5 (Docker + CloakBrowser) — see honest_impossible_without_docker below."
+    }
+  ],
+  "secondary_endpoints_verified": [
+    {
+      "name": "dtk_unified_parse_post",
+      "endpoint_pattern": "POST https://api.douyin.wtf/api/v1/parse?wait={seconds}",
+      "request_body_shape": "{\"url\":\"https://www.douyin.com/video/{aweme_id}\",\"include_raw\":false}",
+      "verified_live": true,
+      "notes": "Same JSON output as the platform-specific /douyin/video endpoint. Better for production because users paste arbitrary share text (long URL, short v.douyin.com link, or clipboard text containing a link) and the worker expands and dispatches internally."
+    },
+    {
+      "name": "dtk_parse_url_pre_flight",
+      "endpoint_pattern": "GET https://api.douyin.wtf/api/v1/tools/parse-url?url={share_url}",
+      "verified_live": true,
+      "notes": "Lightweight pre-flight: no upstream Douyin call. Identifies platform (douyin/tiktok), resource kind (video/user/collection), aweme_id, and whether the URL needs expansion. Use this to validate input before committing to a heavier fetch_one_video call."
+    }
+  ],
+  "methods_attempted_and_dead": [
+    {
+      "name": "direct_douyin_web_aweme_detail",
+      "endpoint_pattern": "https://www.douyin.com/aweme/v1/web/aweme/detail/?aweme_id={id}",
+      "result": "HTTP 403 — 'Blocked by ArgusSecurityPlugin Uifid Not Found' (46 bytes)",
+      "verified_dead_at": "2026-10-03T13:05:00Z",
+      "notes": "Direct Douyin web API requires Argus anti-bot signature (a_bogus, X-Bogus, X-Gnarly). Cannot be called from a datacenter IP without a CloakBrowser-style guest identity minter."
+    },
+    {
+      "name": "demo_douyin_wtf_legacy_fetch_one_video",
+      "endpoint_pattern": "https://demo.douyin.wtf/api/v1/douyin/web/fetch_one_video?aweme_id={id}",
+      "result": "HTTP 404 — NOT_FOUND (this v3-era endpoint no longer exists; the demo has been replaced by the dtk v5 console at api.douyin.wtf)",
+      "verified_dead_at": "2026-10-03T13:05:00Z"
+    },
+    {
+      "name": "api_douyin_wtf_legacy_fetch_one_video",
+      "endpoint_pattern": "https://api.douyin.wtf/api/v1/douyin/web/fetch_one_video?aweme_id={id}",
+      "result": "HTTP 404 — same as above. The v5 dtk console uses /api/v1/douyin/video?aweme_id=... (no /web/ infix, no fetch_one_video suffix).",
+      "verified_dead_at": "2026-10-03T13:05:00Z"
+    },
+    {
+      "name": "demo_tikhub_io_douyin_fetch_one_video",
+      "endpoint_pattern": "https://demo.tikhub.io/api/v1/douyin/web/fetch_one_video?aweme_id={id}",
+      "result": "HTTP 404 — endpoint does not exist on the TikHub Demos Next.js site; demo.tikhub.io is now just a marketing page for the paid SaaS.",
+      "verified_dead_at": "2026-10-03T13:05:00Z"
+    },
+    {
+      "name": "api_tikhub_io_douyin_fetch_one_video",
+      "endpoint_pattern": "https://api.tikhub.io/api/v1/douyin/web/fetch_one_video?aweme_id={id}",
+      "result": "HTTP 401 — 'API token is missing in the request Header or Cookie'. No anonymous free tier for this endpoint; TikHub is a paid SaaS out of scope per the task brief.",
+      "verified_dead_at": "2026-10-03T13:05:00Z"
+    },
+    {
+      "name": "cobalt_public_api_v7",
+      "endpoint_pattern": "POST https://api.cobalt.tools/api/json  with {\"url\":\"https://www.douyin.com/video/{id}\"}",
+      "result": "HTTP 400 — 'the cobalt v7 api has been shut down on nov 11th 2024. see https://github.com/imputnet/cobalt/discussions/860 for more information.'",
+      "verified_dead_at": "2026-10-03T13:05:00Z",
+      "notes": "Public Cobalt is dead. Only community relays or self-hosted Cobalt instances remain — none verified working for Douyin from a datacenter IP in this run."
+    },
+    {
+      "name": "douyin_parser_com",
+      "endpoint_pattern": "https://www.douyin-parser.com/api/parse?url={douyin_url}",
+      "result": "HTTP 000 — connection failed (DNS resolution / TCP refused)",
+      "verified_dead_at": "2026-10-03T13:05:00Z"
+    }
+  ],
+  "methods_not_explored_fully": [
+    {
+      "name": "socks5_residential_proxy_farm",
+      "endpoint_pattern": "Fetch SOCKS5 list from TheSpeedX/PROXY-List, route a curl with full browser headers through it, parse the resulting HTML for the play_addr URL list",
+      "reason_skipped": "Working dtk demo found before this brittle fallback was needed. Would only be worth building if api.douyin.wtf demo is revoked — and even then, residential proxies are unstable, slow, and the Douyin anti-bot signatures (a_bogus, X-Bogus, X-Gnarly, X-Dynosaur) require JS-evaluation, so a bare SOCKS5 fetch alone is not sufficient without also running the CloakBrowser signature minter. In other words, SOCKS5 alone is not a viable path."
+    },
+    {
+      "name": "self_hosted_cobalt_v10",
+      "endpoint_pattern": "POST https://{self-hosted-cobalt-relay}/api/json  with {\"url\":\"https://www.douyin.com/video/{id}\"}",
+      "reason_skipped": "No public community relays known to be alive for Douyin. Self-hosting Cobalt requires Docker (out of no-Docker scope) and a working Douyin parser plugin; not investigated further because dtk demo covers the use case."
+    }
+  ],
+  "honest_impossible_without_docker_assessment": {
+    "summary": "The fundamental constraint is unchanged from the prior research worklog: from a datacenter IP, Douyin's anti-bot (Argus, a_bogus, X-Bogus, X-Gnarly, X-Dynosaur) cannot be satisfied by any lightweight CLI path. The only working approaches all rely on a CloakBrowser-style guest-identity minter — i.e. a headless Chromium with browser-grade TLS, JS evaluation, and a constantly-rotated cookie jar. That minter itself requires Docker (or equivalent container/orchestration) to run.",
+    "what_is_truly_impossible": [
+      "Calling https://www.douyin.com/aweme/v1/web/aweme/detail/ directly from a datacenter IP — Argus blocks it",
+      "yt-dlp Douyin with self-minted cookies from a datacenter IP — Douyin no longer hands out anonymous cookies to datacenter IPs (verified again today)",
+      "jiji262/douyin-downloader CLI — author acknowledges verification wall blocks CLI downloads",
+      "Bare SOCKS5 residential-proxy fetch of the Douyin page HTML — even if the page loads, the play_addr URLs are only embedded in a JS bundle that requires signature parameters generated by Douyin's JS crypto (a_bogus etc.) — so the page is useless without the signature minter"
+    ],
+    "what_is_actually_possible_without_docker_on_our_side": [
+      "Use api.douyin.wtf demo (someone else runs the Docker stack for us) — VERIFIED WORKING 2026-10-03",
+      "Use any other public dtk instance where an operator publishes demo creds — same pattern, findable via OpenAPI spec fetch",
+      "Self-host Evil0ctal/Douyin_TikTok_Download_API v5 — this is the production answer but DOES require Docker + CloakBrowser + headless Chromium. Without Docker, there is no working self-host path."
+    ],
+    "recommended_production_path": "Two-tier: (1) Tier-A default uses api.douyin.wtf demo for evaluation/CI/single-shot downloads. (2) Tier-B production uses a self-hosted Evil0ctal v5 instance (Docker required) pointed at by AVD_DOUYIN_DTK_URL env var (already wired in src/avd/extractors/douyin.py slot 1). When neither is available, return the honest 'datacenter_ip_walled' error already coded in slot 3. Do NOT spend cycles on SOCKS5 farms or yt-dlp cookie-minting — they don't actually work for Douyin's current signature stack.",
+    "code_integration_status": "src/avd/extractors/douyin.py already has a _try_dtk_sidecar slot wired to AVD_DOUYIN_DTK_URL. To use the public demo as a zero-config default, set the demo's base URL (https://api.douyin.wtf) as the fallback when AVD_DOUYIN_DTK_URL is unset, and add a demo-creds-aware login step before the fetch_one_video call. CDN allowlist should be extended to include zjcdn.com (the Zhejiang Douyin CDN observed serving the verified video)."
+  }
+}

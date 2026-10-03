@@ -1,0 +1,70 @@
+{
+  "verified_video_tweets": [
+    {
+      "id": "2072695632104468543",
+      "url": "https://x.com/SpaceX/status/2072695632104468543",
+      "video_url": "https://video.twimg.com/amplify_video/2072695233515552768/vid/avc1/3840x2160/w_WTeWabKS_nzibd.mp4?tag=28",
+      "text": "Starship 60-second static fire ahead of the thirteenth flight test",
+      "author": "SpaceX",
+      "duration": 74.774,
+      "width": 3840,
+      "height": 2160,
+      "probe": "200 https://video.twimg.com/amplify_video/2072695233515552768/vid/avc1/3840x2160/w_WTeWabKS_nzibd.mp4?tag=28"
+    },
+    {
+      "id": "2104601695711904180",
+      "url": "https://x.com/SpaceX/status/2104601695711904180",
+      "video_url": "https://video.twimg.com/amplify_video/2104601502752948225/vid/avc1/3840x2160/GQ0Nh2aXYOk1um4f.mp4?tag=29",
+      "text": "Splashdown confirmed. Congratulations to the entire SpaceX team on the first orbital flight of Starship!",
+      "author": "SpaceX",
+      "duration": 88.97,
+      "width": 3840,
+      "height": 2160,
+      "probe": "200 https://video.twimg.com/amplify_video/2104601502752948225/vid/avc1/3840x2160/GQ0Nh2aXYOk1um4f.mp4?tag=29"
+    },
+    {
+      "id": "2104560708969259344",
+      "url": "https://x.com/SpaceX/status/2104560708969259344",
+      "video_url": "https://video.twimg.com/amplify_video/2104560614626766848/vid/avc1/3840x2160/WMLBYlBCU0AQ5vn3.mp4?tag=29",
+      "text": "Starship performs its orbital insertion burn and enters orbit of Earth for the first time",
+      "author": "SpaceX",
+      "duration": 55.33,
+      "width": 3840,
+      "height": 2160,
+      "probe": "200 https://video.twimg.com/amplify_video/2104560614626766848/vid/avc1/3840x2160/WMLBYlBCU0AQ5vn3.mp4?tag=29"
+    },
+    {
+      "id": "1977895039318864296",
+      "url": "https://x.com/SpaceX/status/1977895039318864296",
+      "video_url": "https://video.twimg.com/amplify_video/1977894881613037569/vid/avc1/3840x2160/ncd0GP0zzC-l8C3q.mp4?tag=21",
+      "text": "Splashdown confirmed! Congratulations to the entire SpaceX team on an exciting eleventh flight test of Starship!",
+      "author": "SpaceX",
+      "duration": 72.09,
+      "width": 3840,
+      "height": 2160,
+      "probe": "200 https://video.twimg.com/amplify_video/1977894881613037569/vid/avc1/3840x2160/ncd0GP0zzC-l8C3q.mp4?tag=21"
+    },
+    {
+      "id": "2080804682918764619",
+      "url": "https://x.com/SpaceX/status/2080804682918764619",
+      "video_url": "https://video.twimg.com/amplify_video/2080804533995786240/vid/avc1/3840x2160/WbRof9zGrtFq_Ji6.mp4?tag=29",
+      "text": "Splashdown confirmed! Congratulations to the entire SpaceX team on the 13th flight test of Starship!",
+      "author": "SpaceX",
+      "duration": 81.32,
+      "width": 3840,
+      "height": 2160,
+      "probe": "200 https://video.twimg.com/amplify_video/2080804533995786240/vid/avc1/3840x2160/WbRof9zGrtFq_Ji6.mp4?tag=29"
+    },
+    {
+      "id": "2090876778646491549",
+      "url": "https://x.com/SpaceX/status/2090876778646491549",
+      "video_url": "https://video.twimg.com/amplify_video/2090876345341403137/vid/avc1/3840x2160/dSXmcr4_5uMS_el1.mp4?tag=29",
+      "text": "The Starship preparing for our fourteenth flight test completed a full-duration, 60-second static fire with all six Raptor engines",
+      "author": "SpaceX",
+      "duration": 78.161,
+      "width": 3840,
+      "height": 2160,
+      "probe": "200 https://video.twimg.com/amplify_video/2090876345341403137/vid/avc1/3840x2160/dSXmcr4_5uMS_el1.mp4?tag=29"
+    }
+  ]
+}

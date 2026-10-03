@@ -1,0 +1,146 @@
+# GitHub Actions remote-download farm workflow for Reddit video posts.
+#
+# Purpose:
+#   Insurance / capacity-overflow path. Verified Methods 1-4 in
+#   reddit_methods.json work from this VM's datacenter IP; this
+#   workflow is only needed if:
+#     - Reddit's CDN config re-blocks v.redd.it CMAF_*.mp4 from
+#       datacenter ASNs (would invalidate Method 4 = linchpin)
+#     - rapidsave.com goes down (would invalidate Methods 1 & 2)
+#     - the post is older than the subreddit's RSS horizon
+#       (would invalidate Method 3, which only handles top-of-day)
+#     - very high download volume / heavy IP fingerprint rotation
+#
+# Cost:
+#   GitHub Actions free tier = 2,000 Linux-runner-min/month.
+#   ~30-60s per download job + 10-30s of bandwidth = ~2,000
+#   downloads/month free. ~$0.008 per download on paid tier
+#   (per GitHub Actions pricing as of 2026-10).
+#
+# Architecture:
+#   The agent (cloud VM) triggers a workflow_dispatch with the
+#   Reddit post URL and an S3 bucket; the GitHub-hosted Azure
+#   runner (residential-grade IP, not datacenter-blocked)
+#   downloads via yt-dlp or curl+ffmpeg and uploads the bytes to
+#   S3; the agent polls S3 HEAD for the object to appear and
+#   atomic-mvs from .part to final.
+
+name: Reddit Download (remote farm)
+
+on:
+  workflow_dispatch:
+    inputs:
+      reddit_url:
+        description: 'Full Reddit post URL (https://www.reddit.com/r/<sub>/comments/<id>/...)'
+        required: true
+        type: string
+      reddit_id:
+        description: 'Reddit post ID (e.g. 1ww6c5f) — used as the S3 object key'
+        required: true
+        type: string
+      s3_bucket:
+        description: 'S3 bucket to upload the muxed MP4 to'
+        required: true
+        type: string
+      s3_prefix:
+        description: 'S3 key prefix (default: reddit/)'
+        required: false
+        default: 'reddit/'
+        type: string
+
+jobs:
+  download:
+    runs-on: ubuntu-latest   # GitHub-hosted Azure runner, residential-grade IP
+    timeout-minutes: 10
+    permissions:
+      id-token: write   # for oidc-to-s3 if using s3actions
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install yt-dlp + ffmpeg + aws cli
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y --no-install-recommends ffmpeg ca-certificates curl unzip
+          curl -sSL https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp
+          chmod +x /usr/local/bin/yt-dlp
+          # aws cli
+          curl -sSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o /tmp/awscliv2.zip
+          unzip -q /tmp/awscliv2.zip -d /tmp && sudo /tmp/aws/install
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::<ACCOUNT_ID>:role/<ROLE_NAME>   # set in repo secrets
+          aws-region: us-east-1
+
+      - name: Download Reddit video via yt-dlp (runner is residential, not blocked)
+        id: dl
+        run: |
+          set -euo pipefail
+          OUT="${{ inputs.reddit_id }}.mp4"
+          yt-dlp \
+            --no-cookies \
+            --no-cache-dir \
+            --user-agent 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131 Safari/537.36' \
+            --format 'best[ext=mp4]/best' \
+            --merge-output-format mp4 \
+            --no-playlist \
+            --print-json \
+            --output "$OUT" \
+            "${{ inputs.reddit_url }}" > meta.json
+          # Sanity: magic-byte + size > 100KB
+          FILE_TYPE=$(file -b "$OUT")
+          echo "file_type=$FILE_TYPE" >> $GITHUB_OUTPUT
+          if ! echo "$FILE_TYPE" | grep -qi 'ISO Media.*MP4'; then
+            echo "ERROR: not an MP4 ($FILE_TYPE)" >&2
+            exit 1
+          fi
+          SIZE=$(stat -c%s "$OUT")
+          echo "size=$SIZE" >> $GITHUB_OUTPUT
+          if [ "$SIZE" -lt 102400 ]; then
+            echo "ERROR: too small ($SIZE bytes)" >&2
+            exit 1
+          fi
+          # Extract duration + title from yt-dlp meta.json for the manifest
+          DURATION=$(jq -r '.duration // empty' meta.json || echo '')
+          TITLE=$(jq -r '.title // empty' meta.json || echo '')
+          echo "duration=$DURATION" >> $GITHUB_OUTPUT
+          echo "title=$TITLE" >> $GITHUB_OUTPUT
+
+      - name: Upload MP4 to S3
+        run: |
+          aws s3 cp "${{ inputs.reddit_id }}.mp4" \
+            "s3://${{ inputs.s3_bucket }}/${{ inputs.s3_prefix }}${{ inputs.reddit_id }}.mp4" \
+            --content-type video/mp4
+
+      - name: Write manifest
+        run: |
+          cat > manifest.json <<EOF
+          {
+            "reddit_id": "${{ inputs.reddit_id }}",
+            "reddit_url": "${{ inputs.reddit_url }}",
+            "s3_uri": "s3://${{ inputs.s3_bucket }}/${{ inputs.s3_prefix }}${{ inputs.reddit_id }}.mp4",
+            "https_url": "https://${{ inputs.s3_bucket }}.s3.amazonaws.com/${{ inputs.s3_prefix }}${{ inputs.reddit_id }}.mp4",
+            "size_bytes": ${{ steps.dl.outputs.size }},
+            "duration_s": "${{ steps.dl.outputs.duration }}",
+            "title": "${{ steps.dl.outputs.title }}",
+            "file_type": "${{ steps.dl.outputs.file_type }}"
+          }
+          EOF
+          aws s3 cp manifest.json \
+            "s3://${{ inputs.s3_bucket }}/${{ inputs.s3_prefix }}${{ inputs.reddit_id }}.manifest.json" \
+            --content-type application/json
+
+# Agent-side poll contract (after triggering workflow_dispatch via
+# GitHub API):
+#   1. POST /repos/<owner>/<repo>/actions/workflows/reddit-download.yml/dispatches
+#      body: {"ref":"main","inputs":{...}}
+#   2. Poll: HEAD https://<bucket>.s3.amazonaws.com/reddit/<id>.mp4 until
+#      HTTP 200 + Content-Length > 102400.
+#   3. Then GET /tmp/<id>.mp4.part via streaming download, atomic mv
+#      to /home/z/.../download/reddit/<slug>.mp4 only after magic-byte
+#      verification (\\x00\\x00\\x00.<ftyp>isom) and ffprobe sanity
+#      (codec_type=video + codec_type=audio, duration matches).
+#   4. Also fetch the .manifest.json sibling object for provenance.
