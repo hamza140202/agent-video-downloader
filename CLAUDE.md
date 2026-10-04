@@ -14,7 +14,7 @@
 **Codename:** `avd` — used in CLI entry point, package name, log files.
 **Purpose:** A `yt-dlp`-for-agents: a single CLI / Python library that downloads videos from **TikTok, Instagram, Douyin, Rednote (Xiaohongshu), Reddit, X.com (Twitter)** — designed for **cloud-only, headless, no-browser, no-cookie, no-login** environments. Built to be invoked by AI agents (Claude, GLM, Cursor, Cline, etc.) as part of larger task workflows.
 
-**Status:** ✅ **Production-ready, PyPI-published, final stage.** 6/6 platforms download real video bytes (Babymonster batch test: 21/24 = 87.5% success, 1.2 GB downloaded via `avd` itself).
+**Status:** ✅ **Production-ready, PyPI-published, final stage.** 6/6 platforms download real video bytes (real-world batch test: 21/24 = 87.5% success, 1.2 GB downloaded via `avd` itself).
 
 **Guiding philosophy:** *"It is possible to build."* No wandering, no questions. The CLI environment does not have browser cookies, login sessions, or residential IPs — and that is a fact, not a problem. The system figures out, gracefully.
 
@@ -223,9 +223,9 @@ avd --version
 avd --help
 avd agent-instructions   # 8-step usage guide for AI agents
 avd test --smoke         # one URL per platform, ~30s
-avd download 'https://www.tiktok.com/@scout2015/video/6718335390845095173' --dest ./download
+avd download 'https://www.tiktok.com/@anyuser/video/<numeric-id>' --dest ./download
 avd batch urls.txt --dest ./download --concurrency 3
-avd verify ./download/tiktok/6718335390845095173.mp4
+avd verify ./download/tiktok/<numeric-id>.mp4
 avd jobs
 avd replay <job_id>
 avd mcp                   # stdio JSON-RPC 2.0 server
@@ -274,13 +274,13 @@ When in doubt, read these in order:
 | Phase 3 — Verifier + Truth + Tester + MCP | ✅ Complete | `src/avd/{verifier,truth_agent,tester,mcp}.py` |
 | Phase 4 — Hardening, CI, packaging | ✅ Complete | `pyproject.toml`, `scripts/selftest.sh` |
 | Phase 5 — PyPI publish + one-command install | ✅ Complete (v1.2.0) | https://pypi.org/project/agent-video-downloader/1.2.0/ |
-| Phase 6 — Babymonster batch test | ✅ Complete | `download/babymonster/` (1.2 GB, 21/24 videos) |
+| Phase 6 — Real-world batch test | ✅ Complete | `download/batch/` (1.2 GB, 21/24 videos) |
 
 **Final status:** ✅ **Production-ready, PyPI-published, final stage.**
 
 - 6/6 platforms download real video bytes from datacenter IPs without login
 - 30/30 unit tests pass
-- 21/24 Babymonster videos downloaded (1.2 GB total) — 87.5% batch success rate
+- 21/24 real-world videos downloaded (1.2 GB total) — 87.5% batch success rate
 - Published on PyPI: `pip install agent-video-downloader`
 - One-command install: `avd agent-setup` auto-clones XHS-Downloader + installs deps
 - Step-by-step agent guide: `avd agent-instructions`

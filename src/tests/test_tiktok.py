@@ -13,7 +13,7 @@ async def test_tiktok_download_smoke(tmp_path):
 
     ex = TikTokExtractor()
     outcome = await ex.extract(
-        "https://www.tiktok.com/@scout2015/video/6718335390845095173",
+        "https://www.tiktok.com/@anyuser/video/6718335390845095173",
         dest=tmp_path,
         opts={},
     )
@@ -27,7 +27,7 @@ async def test_tiktok_extract_id():
     """Test TikTok video ID extraction."""
     from avd.extractors.tiktok import _extract_tiktok_id
 
-    assert _extract_tiktok_id("https://www.tiktok.com/@scout2015/video/6718335390845095173") == "6718335390845095173"
+    assert _extract_tiktok_id("https://www.tiktok.com/@anyuser/video/6718335390845095173") == "6718335390845095173"
     assert _extract_tiktok_id("https://www.tiktok.com/t/ZPRK1n3FR/") is None  # short, no numeric
     assert _extract_tiktok_id("https://www.tiktok.com/@user/video/7234567890123456789") == "7234567890123456789"
 

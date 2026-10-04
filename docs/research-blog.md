@@ -558,7 +558,7 @@ The comparison logic uses Levenshtein fuzzy matching for titles (different surfa
 >
 > For fuzzy matching, you compute `1 - (distance / max_length)` to get a ratio between 0 and 1. A ratio of 1.0 means the strings are identical. A ratio ≥ 0.7 is typically "good enough" match.
 >
-> Why fuzzy? Different platform surfaces truncate titles differently. The TikTok oEmbed might return "BABYMONSTER FOREVER Countdown Interview RUKA" while the TikWM API returns "BABYMONSTER - 'FOREVER' COUNTDOWN INTERVIEW I RUKA #BABYMONSTER". Same video, different string representations. Exact equality would fail; Levenshtein ratio succeeds.
+> Why fuzzy? Different platform surfaces truncate titles differently. The TikTok oEmbed might return "Example Video Title Author Name" while the TikWM API returns "Example Video - Title - Author Name - #hashtag". Same video, different string representations. Exact equality would fail; Levenshtein ratio succeeds.
 
 ---
 

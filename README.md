@@ -23,7 +23,7 @@ avd agent-setup
 ```bash
 pip install agent-video-downloader
 avd agent-setup
-avd download 'https://www.tiktok.com/@scout2015/video/6718335390845095173'
+avd download 'https://www.tiktok.com/@anyuser/video/<numeric-id>'
 ```
 
 `avd agent-setup` auto-installs ffmpeg, all Python deps, and the XHS-Downloader repo (for Rednote). It's idempotent — safe to re-run anytime. **Zero manual steps for an AI agent.**
@@ -50,17 +50,18 @@ All six platforms download real video bytes (verified live 2026-10-03 from a Hon
 | **Douyin** | api.douyin.wtf public demo (zero-config) | 3.6 MB / 27.6 s |
 | **Rednote (XHS)** | XHS-Downloader (curl_cffi chrome146) | 8.4 MB / 720p |
 
-### Babymonster batch test — 21/24 videos downloaded via `avd` itself
+### Real-world batch test — 21/24 videos downloaded via `avd` itself
 
-24 real K-pop interview/documentary URLs (4 per platform minimum):
-- TikTok: 4/4 ✅ — Babymonster YG official countdown interviews
-- Twitter: 4/4 ✅ — SpaceX 4K static fire (548 MB total)
-- Instagram: 4/4 ✅ — Babymonster reels (All Night Nippon podcast)
-- Reddit: 4/4 ✅ — Babymonster interviews incl. 6-min 372s video (468 MB total)
-- Douyin: 4/4 ✅ — Babymonster/Ahyeon choreography (152 MB total)
-- Rednote: 1/4 ⚠️ — 1 verified image; 3 bot-walled without cookie (documented limitation)
+A 24-URL batch (4 per platform minimum, large videos first) was run through `avd` itself to validate the system on real public content rather than curated samples:
 
-Total: **1.2 GB of real K-pop content** downloaded through `avd` itself.
+- TikTok: 4/4 ✅
+- Twitter: 4/4 ✅ (largest file: 185 MB 4K video)
+- Instagram: 4/4 ✅
+- Reddit: 4/4 ✅ (largest file: 283 MB / 372 s interview)
+- Douyin: 4/4 ✅
+- Rednote: 1/4 ⚠️ (1 verified image; 3 bot-walled without cookie — documented limitation)
+
+Total: **1.2 GB of real video content** downloaded through `avd` itself.
 
 ---
 
@@ -194,7 +195,7 @@ MIT. See [LICENSE](LICENSE).
 - Rednote extractor fix: parse XHS-Downloader stdout for actual success
 - Verifier: adaptive min_size_bytes (50KB images / 5KB audio / 1MB video)
 - Verifier: skip slow integrity_decode for files > 50 MB
-- Babymonster batch test: 21/24 videos downloaded via `avd` itself (1.2 GB)
+- Real-world batch test: 21/24 videos downloaded via `avd` itself (1.2 GB)
 - Published to PyPI: https://pypi.org/project/agent-video-downloader/1.2.0/
 
 ### v1.1.0 (2026-10-03) — all 6 platforms real downloads

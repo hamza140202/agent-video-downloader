@@ -153,16 +153,14 @@
 
 ---
 
-## Phase 6 — Babymonster batch test (real-world validation)
+## Phase 6 — Real-world batch test (validation on real public content)
 
-**Goal:** Use `avd` itself to download 24 real K-pop interview/documentary videos (4 per platform minimum) and verify the system works end-to-end on real content, not just sample URLs.
+**Goal:** Use `avd` itself to download 24 real public videos (4 per platform minimum) and verify the system works end-to-end on real content, not just sample URLs.
 
 **Deliverables:**
-- [x] `src/tests/babymonster_urls_tiktok_ig_x.json` — 16 verified URLs (5 TikTok + 6 Instagram + 5 Twitter, all confirmed live via TikWM / embed / fxtwitter)
-- [x] `src/tests/babymonster_urls_reddit_rednote_douyin.json` — 12 URLs (4 Reddit verified + 4 Rednote [1 real + 3 substitutes] + 4 Douyin verified via api.douyin.wtf demo)
-- [x] `babymonster_batch.txt` — 24 URLs, large videos first
-- [x] 21 of 24 real videos downloaded (1.2 GB total) — see "Babymonster test results" below
-- [x] Reddit extractor fix: probe BOTH CMAF and DASH format ladders (Babymonster batch surfaced the DASH format issue)
+- [x] 24 verified URLs across the 6 platforms (large videos first)
+- [x] 21 of 24 real videos downloaded (1.2 GB total) — see "Real-world test results" below
+- [x] Reddit extractor fix: probe BOTH CMAF and DASH format ladders (batch surfaced the DASH format issue)
 - [x] Rednote extractor fix: parse XHS-Downloader stdout for actual success count (was returning false positives)
 - [x] Verifier fix: adaptive min_size_bytes (50KB images / 5KB audio / 1MB video), skip slow integrity_decode for >50MB files
 
@@ -170,15 +168,15 @@
 
 **Status:** ✅ Complete (2026-10-03)
 
-### Babymonster test results (24 URLs attempted, 21 successful)
+### Real-world test results (24 URLs attempted, 21 successful)
 
 | Platform | URLs attempted | Successful | Total size | Notes |
 |---|---|---|---|---|
-| TikTok | 4 | 4 ✅ | 16 MB | Babymonster YG official countdown interviews |
-| Twitter | 4 | 4 ✅ | 548 MB | SpaceX 4K static fire (largest: 185 MB) |
-| Instagram | 4 | 4 ✅ | 28.7 MB | Babymonster reels (All Night Nippon podcast) |
-| Reddit | 4 | 4 ✅ | 468 MB | r/BABYMONSTER interviews (largest: 6-min 372s video) |
-| Douyin | 4 | 4 ✅ | 152 MB | Babymonster/Ahyeon choreography + fan content |
+| TikTok | 4 | 4 ✅ | 16 MB | Mix of fan content and official posts |
+| Twitter | 4 | 4 ✅ | 548 MB | 4K videos (largest: 185 MB) |
+| Instagram | 4 | 4 ✅ | 28.7 MB | Reels |
+| Reddit | 4 | 4 ✅ | 468 MB | Native v.redd.it uploads (largest: 6-min 372s video) |
+| Douyin | 4 | 4 ✅ | 152 MB | Mix of fan and official content |
 | Rednote | 4 | 1 ⚠️ | 179 KB | 3 bot-walled without cookie (documented limitation) |
 | **Total** | **24** | **21** | **1.2 GB** | **87.5% batch success rate** |
 
@@ -222,7 +220,7 @@ Not in scope for the v1.2 PyPI release. Listed here for the next agent.
 | **Auto-bootstrap on first download** | — | — | — | — | — | ✅ | — |
 | **`avd agent-instructions` guide** | — | — | — | — | — | ✅ | — |
 | **Published on PyPI** | — | — | — | — | — | ✅ | — |
-| **Babymonster batch test (24 URLs)** | — | — | — | — | — | — | ✅ (21/24, 1.2 GB) |
+| **Real-world batch test (24 URLs)** | — | — | — | — | — | — | ✅ (21/24, 1.2 GB) |
 
 ---
 

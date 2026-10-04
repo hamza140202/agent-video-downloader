@@ -44,7 +44,7 @@
 | 1.6 | Lead Agent | `src/avd/orchestrator.py` | `Orchestrator().download(url)` returns a `DownloadResult` | ✅ |
 | 1.7 | Lead Agent | `src/avd/verifier.py` | Verifies a real MP4 → `integrity_ok=True`; rejects an HTML page → `False` | ✅ |
 | 1.8 | Lead Agent | `src/avd/truth_agent.py` (TikTok + Twitter fetchers) | Returns `verdict="verified"` for a known-good TikTok URL | ✅ |
-| 1.9 | Lead Agent | `src/avd/extractors/tiktok.py` (TikWM + embed/v2 + tiklydown + oEmbed slots) | `avd download <scout2015-tiktok-url>` produces a verified MP4 | ✅ |
+| 1.9 | Lead Agent | `src/avd/extractors/tiktok.py` (TikWM + embed/v2 + tiklydown + oEmbed slots) | `avd download <known-tiktok-url>` produces a verified MP4 | ✅ |
 | 1.10 | Lead Agent | `src/avd/extractors/twitter.py` (fxtwitter + syndication + unrollnow + vxtwitter slots) | `avd download <jack-first-tweet-url>` produces a verified MP4 | ✅ |
 | 1.11 | Lead Agent | `src/avd/cli.py` | `avd download`, `avd batch`, `avd verify`, `avd test` all wired | ✅ |
 | 1.12 | Lead Agent | `tests/sample_urls.json` | ≥ 3 URLs per platform, all 6 platforms covered | ✅ |
@@ -101,18 +101,18 @@
 
 ---
 
-## Phase 6 — Babymonster batch test (real-world validation)
+## Phase 6 — Real-world batch test (validation on real public content)
 
 | Task ID | Owner | Description | Exit criterion | Status |
 |---|---|---|---|---|
-| 6.1 | Research B1 | Find 4+ real Babymonster URLs each on TikTok, Instagram, Twitter/X | `src/tests/babymonster_urls_tiktok_ig_x.json` with ≥ 4 per platform, all verified via TikWM / fxtwitter / embed | ✅ |
-| 6.2 | Research B2 | Find 4+ real Babymonster URLs each on Reddit, Rednote, Douyin | `src/tests/babymonster_urls_reddit_rednote_douyin.json` with ≥ 4 per platform; honest report where Babymonster content doesn't exist | ✅ |
-| 6.3 | Lead Agent | Create `babymonster_batch.txt` with 24 URLs, large videos first | File exists with 24 URLs, 4 per platform | ✅ |
-| 6.4 | Lead Agent | Run `avd batch babymonster_batch.txt --dest ./download/babymonster` | All 24 URLs attempted via avd itself | ✅ |
+| 6.1 | Research B1 | Find 4+ real public URLs each on TikTok, Instagram, Twitter/X | 16 URLs verified live via TikWM / fxtwitter / embed | ✅ |
+| 6.2 | Research B2 | Find 4+ real public URLs each on Reddit, Rednote, Douyin | 12 URLs verified; honest report where content is limited | ✅ |
+| 6.3 | Lead Agent | Create batch file with 24 URLs, large videos first | File exists with 24 URLs, 4 per platform | ✅ |
+| 6.4 | Lead Agent | Run batch download via `avd` itself | All 24 URLs attempted via avd itself | ✅ |
 | 6.5 | Lead Agent | Fix Reddit extractor: probe BOTH CMAF and DASH format ladders | URLs returning DASH_1080.mp4 now succeed (was `no_resolution_probed`) | ✅ |
 | 6.6 | Lead Agent | Fix Rednote extractor: parse XHS-Downloader stdout for actual success | Bot-walled URLs now report `datacenter_ip_walled` honestly (was false positive) | ✅ |
 | 6.7 | Lead Agent | Fix Verifier: adaptive min_size_bytes + skip slow integrity_decode | JPEG images (179KB) no longer rejected for `E_SIZE_TOO_SMALL`; large MP4s (>50MB) no longer time out | ✅ |
-| 6.8 | Lead Agent | Verify final count: 21/24 successful downloads | See Babymonster test results table in PHASES.md | ✅ |
+| 6.8 | Lead Agent | Verify final count: 21/24 successful downloads | See real-world test results table in PHASES.md | ✅ |
 
 ---
 
@@ -202,7 +202,7 @@ The project is **done** when **all** of the following are true:
 5. ✅ Proof-of-work summary delivered to the user (with concrete download URLs + file paths + verifier reports).
 6. ✅ **Published on PyPI** — https://pypi.org/project/agent-video-downloader/1.2.0/ live.
 7. ✅ **One-command install works** — `pip install agent-video-downloader && avd agent-setup` verified end-to-end from PyPI.
-8. ✅ **Real-world validation** — Babymonster batch test downloaded 21/24 real K-pop videos (1.2 GB total) via `avd` itself.
+8. ✅ **Real-world validation** — Real-world batch test downloaded 21/24 real public videos (1.2 GB total) via `avd` itself.
 
 **Status:** ✅ **All 8 criteria met. Project is done.** v1.2.0 PyPI-published, 2026-10-03.
 

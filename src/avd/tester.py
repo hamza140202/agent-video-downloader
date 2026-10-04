@@ -28,7 +28,7 @@ def _load_samples() -> dict[str, list[str]]:
             return json.load(f)
     return {
         "tiktok": [
-            "https://www.tiktok.com/@scout2015/video/6718335390845095173",
+            "https://www.tiktok.com/@anyuser/video/6718335390845095173",
         ],
         "twitter": [
             "https://x.com/jack/status/20",

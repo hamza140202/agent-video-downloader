@@ -1,6 +1,6 @@
 # Research Report: Video Downloader Tech for TikTok, Instagram, Douyin, Rednote, Reddit, X.com
 
-**Task ID**: 2-a (initial) + T1-T5 (v1.1 verification) + B1-B2 (v1.2 Babymonster batch)
+**Task ID**: 2-a (initial) + T1-T5 (v1.1 verification) + B1-B2 (v1.2 real-world batch)
 **Agent**: Research Agent 1
 **Date**: 2026-10-03 (v1.0 initial) → 2026-10-03 (v1.1 verification) → 2026-10-03 (v1.2 final)
 **Environment**: Cloud Linux VM, Python 3.12.14, datacenter IP class (HKG region)
@@ -124,7 +124,7 @@ Returns JSON (verified live in this VM, ~0.7 s):
     "wmplay": "https://...tikwm.com/.../watermark.mp4",// watermarked
     "hdplay":  "https://...tikwm.com/.../hd.mp4",      // HD no-watermark (hd=1)
     "music":  "https://...tikwm.com/.../music.mp3",
-    "author": { "id": "...", "unique_id": "scout2015", "nickname": "...", ... },
+    "author": { "id": "...", "unique_id": "<author_handle>", "nickname": "...", ... },
     "stats": { "playCount": ..., "diggCount": ..., "commentCount": ..., "shareCount": ..., "collectCount": ..., "downloadCount": ... },
     "images": [...],  // for slideshows
     ...
@@ -170,7 +170,7 @@ Failure signature (verified live): `{"code":-1,"msg":"Url parsing is failed!..."
 #### curl example (verified working)
 
 ```bash
-URL='https://www.tiktok.com/@scout2015/video/6718335390845095173'
+URL='https://www.tiktok.com/@<author>/video/<numeric-id>'
 ENC=$(python3 -c "import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1]))" "$URL")
 curl -sLA 'Mozilla/5.0' "https://www.tikwm.com/api/?url=${ENC}&hd=1" \
   | python3 -c "import json,sys; d=json.load(sys.stdin)['data']; print('video:', d.get('play')); print('hd:', d.get('hdplay')); print('music:', d.get('music'))"

@@ -1,0 +1,21 @@
+{
+  "_comment": "Copy this file to sample_urls.json and populate with real public URLs for the smoke test. The sample_urls.json file is gitignored to prevent specific test content from being public. Each platform needs >= 1 URL; >= 3 is preferred for variety.",
+  "tiktok": [
+    "https://www.tiktok.com/@<author>/video/<numeric-id>"
+  ],
+  "twitter": [
+    "https://x.com/<author>/status/<numeric-id>"
+  ],
+  "reddit": [
+    "https://www.reddit.com/r/<subreddit>/comments/<post-id>/<slug>/"
+  ],
+  "instagram": [
+    "https://www.instagram.com/p/<shortcode>/"
+  ],
+  "rednote": [
+    "https://www.xiaohongshu.com/explore/<24-char-hex-id>"
+  ],
+  "douyin": [
+    "https://www.douyin.com/video/<numeric-id>"
+  ]
+}

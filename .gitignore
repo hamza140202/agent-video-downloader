@@ -37,3 +37,11 @@ env/
 # Cookies (never commit)
 cookies.txt
 *.cookies
+tests/sample_urls.json
+src/tests/sample_urls.json
+# specific test batch files (gitignored to prevent leaking test content)
+*_batch_urls.txt
+src/agent_video_downloader.egg-info/
+
+# Test result files (contain specific URLs from runs)
+tests/results/

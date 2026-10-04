@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "agent-video-downloader"
-version = "1.2.1"
+version = "1.2.2"
 description = "yt-dlp for agents: a cloud-CLI multi-agent video downloader for TikTok, Instagram, Douyin, Rednote, Reddit, X.com"
 readme = "README.md"
 license = {text = "MIT"}

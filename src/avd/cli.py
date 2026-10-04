@@ -221,7 +221,7 @@ def agent_setup_cmd(force: bool) -> None:
 
     if summary["ready"]:
         console.print("\n[bold green]avd is ready to download.[/] Try:")
-        console.print("  [cyan]avd download 'https://www.tiktok.com/@scout2015/video/6718335390845095173'[/]")
+        console.print("  [cyan]avd download '<tiktok-url>'[/]")
         console.print("  [cyan]avd test --smoke[/]  # end-to-end self-test")
         console.print("  [cyan]avd agent-instructions[/]  # step-by-step usage guide")
     sys.exit(0 if summary["ready"] else 1)
@@ -277,12 +277,12 @@ avd download '<url>' --dest ./download
 
 Examples (verified live 2026-10-03):
 ```bash
-avd download 'https://www.tiktok.com/@scout2015/video/6718335390845095173'
-avd download 'https://x.com/SpaceX/status/2072695632104468543'
-avd download 'https://www.reddit.com/r/funny/comments/1ww6c5f/a_perfectly_even_match/'
-avd download 'https://www.instagram.com/p/DKw2J6TMZd7/'
-avd download 'https://www.douyin.com/video/7324982373882400063'
-avd download 'https://www.xiaohongshu.com/explore/6a40dd42000000000f02a91b'
+avd download '<tiktok-url>'
+avd download '<x.com-tweet-url-with-video>'
+avd download '<reddit-post-url-with-v.redd.it-video>'
+avd download '<instagram-reel-or-post-url>'
+avd download '<douyin-video-url>'
+avd download '<xiaohongshu-explore-url>'
 ```
 
 Output is pipe-safe — logs on stderr, the downloaded file path on stdout:
@@ -300,8 +300,8 @@ avd batch urls.txt --dest ./download --concurrency 3
 `urls.txt` format:
 ```
 # comments allowed
-https://www.tiktok.com/@scout2015/video/6718335390845095173
-https://x.com/SpaceX/status/2072695632104468543
+<tiktok-url>
+<x.com-tweet-url-with-video>
 ```
 
 ## Step 5 — Get JSON output (for programmatic use)

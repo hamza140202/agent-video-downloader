@@ -15,7 +15,7 @@ def test_candidates_for_tiktok_url():
     """A known TikTok URL should match the tiktok extractor."""
     from avd.extractors.registry import ExtractorRegistry
 
-    candidates = ExtractorRegistry.candidates("https://www.tiktok.com/@scout2015/video/6718335390845095173")
+    candidates = ExtractorRegistry.candidates("https://www.tiktok.com/@anyuser/video/6718335390845095173")
     assert len(candidates) >= 1
     assert "tiktok" in candidates[0][0].meta.platforms
 

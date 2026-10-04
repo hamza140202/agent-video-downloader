@@ -90,12 +90,12 @@ async def replay(self, dlq_entry_id: str) -> DownloadResult: ...
 ```python
 # Python
 from avd.orchestrator import Orchestrator
-result = await Orchestrator().download("https://www.tiktok.com/@scout2015/video/6718335390845095173", dest=Path("./download"))
+result = await Orchestrator().download("<tiktok-url>", dest=Path("./download"))
 ```
 
 ```bash
 # CLI
-avd download 'https://www.tiktok.com/@scout2015/video/6718335390845095173' --dest ./download
+avd download '<tiktok-url>' --dest ./download
 avd batch urls.txt --dest ./download --concurrency 3
 avd resume 550e8400-e29b-41d4-a716-446655440000
 avd replay dlq-20261003-001
@@ -103,7 +103,7 @@ avd replay dlq-20261003-001
 
 ```json
 // MCP
-{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"extract_tiktok","arguments":{"url":"https://www.tiktok.com/@scout2015/video/6718335390845095173","dest":"./download"}}}
+{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"extract_tiktok","arguments":{"url":"<tiktok-url>","dest":"./download"}}}
 ```
 
 ---
@@ -219,7 +219,7 @@ async def cross_check(self, url: str, downloaded_meta: dict) -> TruthReport: ...
 ```json
 {
   "title": "...",
-  "author": "scout2015",
+  "author": "<author_handle>",
   "duration_s": 12.5,
   "thumbnail_url": "https://...",
   "media_count": 1
@@ -238,8 +238,8 @@ async def cross_check(self, url: str, downloaded_meta: dict) -> TruthReport: ...
 ```python
 from avd.truth_agent import TruthAgent
 report = await TruthAgent().cross_check(
-    "https://www.tiktok.com/@scout2015/video/6718335390845095173",
-    downloaded_meta={"title": "...", "author": "scout2015", "duration_s": 12.5}
+    "<tiktok-url>",
+    downloaded_meta={"title": "...", "author": "<author_handle>", "duration_s": 12.5}
 )
 print(report.verdict, report.confidence)
 ```

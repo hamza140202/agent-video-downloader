@@ -289,7 +289,7 @@ class Tester(Protocol):
 8. Exit code: 0 if smoke threshold met, 1 otherwise.
 
 ### Sample URL curation rules
-- All URLs are **public, well-known, durable** posts by major accounts (e.g., `@jack`'s first tweet for Twitter, `@scout2015`'s viral TikTok).
+- All URLs are **public, well-known, durable** posts (e.g., `@jack`'s first tweet for Twitter, a known-durable TikTok video).
 - No private, deleted, or NSFW content.
 - Each platform has ≥ 3 samples: one happy path, one image-only (where applicable), one short-link/redirect form.
 
@@ -377,7 +377,7 @@ from avd.orchestrator import Orchestrator
 async def main():
     orch = Orchestrator()
     result = await orch.download(
-        "https://www.tiktok.com/@scout2015/video/6718335390845095173",
+        "https://www.tiktok.com/@anyuser/video/6718335390845095173",
         dest=Path("./download"),
     )
     print(result.status, result.artifact_path)

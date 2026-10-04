@@ -42,7 +42,7 @@ Run this weekly (or when a download starts failing):
 
 ```bash
 # 1. TikTok
-curl -sLA 'Mozilla/5.0' 'https://www.tikwm.com/api/?url=https%3A%2F%2Fwww.tiktok.com%2F%40scout2015%2Fvideo%2F6718335390845095173&hd=1' | head -c 200
+curl -sLA 'Mozilla/5.0' 'https://www.tikwm.com/api/?url=<url-encoded-tiktok-url>&hd=1' | head -c 200
 
 # 2. Twitter
 curl -sLA 'Mozilla/5.0' 'https://api.fxtwitter.com/status/20' | head -c 200
