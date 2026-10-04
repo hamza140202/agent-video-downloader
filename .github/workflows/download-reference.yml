@@ -11,15 +11,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install yt-dlp
-        run: sudo apt-get update -y && sudo apt-get install -y ffmpeg && pip install yt-dlp
-      - name: Download video
+      - name: Install yt-dlp + deno JS runtime
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y ffmpeg
+          pip install -U yt-dlp
+          curl -fsSL https://deno.land/install.sh | sh -s v2.0.0
+          echo "$HOME/.deno/bin" >> $GITHUB_PATH
+      - name: Download video (retry: -f best)
         run: |
           mkdir -p out
-          yt-dlp -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best' \
+          yt-dlp -f best \
             --merge-output-format mp4 \
             --write-info-json \
             --write-thumbnail \
+            --extractor-args "youtube:player_client=android,web_safari,ios,tv,embedded" \
             -o 'out/reference.%(ext)s' \
             "${{ inputs.video_url }}"
       - name: Upload artifact
