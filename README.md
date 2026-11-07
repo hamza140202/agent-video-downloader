@@ -214,3 +214,11 @@ MIT. See [LICENSE](LICENSE).
 - MCP server (stdio JSON-RPC 2.0)
 - SQLite jobs table with resume / DLQ replay
 - 30/30 unit tests pass
+
+---
+
+## Project status
+
+**Completed project** — verified in the portfolio audit of **7 November 2026** (README, codebase and project state reviewed).
+
+_Last verified: 7 November 2026_
